@@ -78,7 +78,7 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          const CollectionScreen(category: 'Top'),
+                          const CollectionScreen(category: 'Top Wear'),
                     ),
                   );
                 },
@@ -132,7 +132,7 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
                                   children: [
                                     // Product Image
                                     Container(
-                                      height: 130,
+                                      height: 155,
                                       decoration: BoxDecoration(
                                         borderRadius:
                                             const BorderRadius.vertical(
@@ -162,12 +162,30 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           const SizedBox(height: 4),
-                                          Text(
-                                            'Rs.${(product['price'] as num).toStringAsFixed(2)}',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 12,
-                                            ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                'Rs.${(product['price'] as num).toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w900,
+                                                  fontSize: 12,
+                                                  color: Colors.red,
+                                                ),
+                                              ),
+                                              if (product['discountPrice'] !=
+                                                  null) ...[
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Rs.${(product['discountPrice'] as num).toStringAsFixed(2)}',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 10,
+                                                    decoration: TextDecoration
+                                                        .lineThrough,
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
                                           ),
                                           const SizedBox(height: 6),
                                           SizedBox(

@@ -241,8 +241,9 @@ class ProductCard extends StatelessWidget {
                       Text(
                         'Rs.${(product['price'] as num).toStringAsFixed(2)}',
                         style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                          color: Colors.red,
                         ),
                       ),
                       if (product['discountPrice'] != null) ...[
