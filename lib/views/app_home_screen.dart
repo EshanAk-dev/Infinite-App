@@ -3,6 +3,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/views/widgets/banner.dart';
 import 'package:infinite_app/views/collection_screen.dart';
 import 'package:infinite_app/views/widgets/new_arrivals_widget.dart';
+import 'package:infinite_app/views/widgets/women_topwear_widget.dart';
 
 class AppHomeScreen extends StatefulWidget {
   const AppHomeScreen({super.key});
@@ -164,8 +165,11 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
             ),
 
             const SizedBox(height: 20),
-            // Add the New Arrivals widget here
+            // New Arrival Widget
             const NewArrivalWidget(),
+            const SizedBox(height: 20),
+
+            const WomenTopWearWidget(),
             const SizedBox(height: 20),
           ],
         ),

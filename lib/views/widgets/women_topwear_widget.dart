@@ -4,25 +4,25 @@ import 'dart:convert';
 import 'package:infinite_app/views/collection_screen.dart';
 import 'package:infinite_app/views/product_details_screen.dart';
 
-class NewArrivalWidget extends StatefulWidget {
-  const NewArrivalWidget({super.key});
+class WomenTopWearWidget extends StatefulWidget {
+  const WomenTopWearWidget({super.key});
 
   @override
-  State<NewArrivalWidget> createState() => _NewArrivalWidgetState();
+  State<WomenTopWearWidget> createState() => _WomenTopWearWidgetState();
 }
 
-class _NewArrivalWidgetState extends State<NewArrivalWidget> {
-  List<dynamic> newArrivals = [];
+class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
+  List<dynamic> womenTopWear = [];
   bool isLoading = true;
   String errorMessage = '';
 
   @override
   void initState() {
     super.initState();
-    fetchNewArrivals();
+    fetchWomenTopWear();
   }
 
-  Future<void> fetchNewArrivals() async {
+  Future<void> fetchWomenTopWear() async {
     setState(() {
       isLoading = true;
       errorMessage = '';
@@ -31,18 +31,18 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://infinite-clothing-backend.onrender.com/api/products/new-arrivals'),
+            'https://infinite-clothing-backend.onrender.com/api/products?gender=Women&category=Top+Wear'),
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          newArrivals = data;
+          womenTopWear = data;
           isLoading = false;
         });
       } else {
         setState(() {
-          errorMessage = 'Failed to load new arrivals';
+          errorMessage = 'Failed to load women top wear';
           isLoading = false;
         });
       }
@@ -65,7 +65,7 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                "New Arrivals",
+                "Top Wear for Women",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -78,7 +78,7 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          const CollectionScreen(category: 'All'),
+                          const CollectionScreen(category: 'Top'),
                     ),
                   );
                 },
@@ -94,22 +94,21 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
             ],
           ),
         ),
-        // Replace the SizedBox containing the ListView.builder with this:
         SizedBox(
-          height: 240, // Fixed height for horizontal scroll view
+          height: 240,
           child: isLoading
               ? const Center(child: CircularProgressIndicator())
               : errorMessage.isNotEmpty
                   ? Center(child: Text(errorMessage))
-                  : newArrivals.isEmpty
-                      ? const Center(child: Text('No new arrivals found'))
+                  : womenTopWear.isEmpty
+                      ? const Center(child: Text('No products found'))
                       : ListView.builder(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 15),
                           itemCount:
-                              newArrivals.length > 6 ? 6 : newArrivals.length,
+                              womenTopWear.length > 6 ? 6 : womenTopWear.length,
                           itemBuilder: (context, index) {
-                            final product = newArrivals[index];
+                            final product = womenTopWear[index];
                             return GestureDetector(
                               onTap: () {
                                 Navigator.push(
@@ -131,9 +130,9 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Product Image - reduced height
+                                    // Product Image
                                     Container(
-                                      height: 130, // Reduced from 150
+                                      height: 130,
                                       decoration: BoxDecoration(
                                         borderRadius:
                                             const BorderRadius.vertical(
@@ -145,11 +144,10 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
                                         ),
                                       ),
                                     ),
-                                    // Product Info - compact padding
+                                    // Product Info
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 8), // Reduced padding
+                                          horizontal: 10, vertical: 8),
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -171,11 +169,10 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
                                               fontSize: 12,
                                             ),
                                           ),
-                                          const SizedBox(
-                                              height: 6), // Reduced from 8
+                                          const SizedBox(height: 6),
                                           SizedBox(
                                             width: double.infinity,
-                                            height: 30, // Fixed button height
+                                            height: 30,
                                             child: ElevatedButton(
                                               onPressed: () {
                                                 Navigator.push(
@@ -189,8 +186,7 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
                                                 );
                                               },
                                               style: ElevatedButton.styleFrom(
-                                                padding: EdgeInsets
-                                                    .zero, // Remove default padding
+                                                padding: EdgeInsets.zero,
                                                 backgroundColor: Colors.black,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
@@ -200,8 +196,7 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
                                               child: const Text(
                                                 'Select Options',
                                                 style: TextStyle(
-                                                  fontSize:
-                                                      11, // Slightly smaller font
+                                                  fontSize: 11,
                                                   color: Colors.white,
                                                   fontWeight: FontWeight.w500,
                                                 ),

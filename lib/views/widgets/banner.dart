@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:infinite_app/views/collection_screen.dart';
 
 class HomeBanner extends StatelessWidget {
   const HomeBanner({super.key});
@@ -84,7 +85,14 @@ class HomeBanner extends StatelessWidget {
                 // Shop Now button
                 ElevatedButton(
                   onPressed: () {
-                    // Add navigation
+                    // Navigate to the collection screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const CollectionScreen(category: "All"),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
