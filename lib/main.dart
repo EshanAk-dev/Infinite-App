@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:infinite_app/views/register_screen.dart';
 import 'package:infinite_app/views/splash_screen.dart';
+import 'package:infinite_app/views/login_screen.dart';
+import 'package:infinite_app/views/app_main_screen.dart';
+import 'package:infinite_app/services/auth_service.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthService(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -10,9 +20,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      title: 'Infinite App',
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: const SplashScreen(),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/main': (context) => const AppMainScreen(),
+      },
     );
   }
 }

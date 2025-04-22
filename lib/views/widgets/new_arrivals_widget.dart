@@ -23,6 +23,7 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
   }
 
   Future<void> fetchNewArrivals() async {
+    if (!mounted) return;
     setState(() {
       isLoading = true;
       errorMessage = '';
@@ -31,22 +32,28 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://infinite-clothing.onrender.com/api/products/new-arrivals'),
+          'https://infinite-clothing.onrender.com/api/products/new-arrivals',
+        ),
       );
+
+      if (!mounted) return;
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        if (!mounted) return;
         setState(() {
           newArrivals = data;
           isLoading = false;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           errorMessage = 'Failed to load new arrivals';
           isLoading = false;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         errorMessage = 'Error: ${e.toString()}';
         isLoading = false;

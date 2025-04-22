@@ -23,6 +23,7 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
   }
 
   Future<void> fetchWomenTopWear() async {
+    if (!mounted) return; // ensure widget is still in tree
     setState(() {
       isLoading = true;
       errorMessage = '';
@@ -34,19 +35,24 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
             'https://infinite-clothing.onrender.com/api/products?gender=Women&category=Top+Wear'),
       );
 
+      if (!mounted) return; // prevent setState after dispose
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        if (!mounted) return;
         setState(() {
           womenTopWear = data;
           isLoading = false;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           errorMessage = 'Failed to load women top wear';
           isLoading = false;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         errorMessage = 'Error: ${e.toString()}';
         isLoading = false;

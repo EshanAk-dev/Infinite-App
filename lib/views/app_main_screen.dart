@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/views/app_home_screen.dart';
 import 'package:infinite_app/views/search_screen.dart';
+import 'package:infinite_app/views/profile_screen.dart';
+import 'package:infinite_app/services/auth_service.dart';
+import 'package:provider/provider.dart';
 
 class AppMainScreen extends StatefulWidget {
   const AppMainScreen({super.key});
@@ -12,14 +15,17 @@ class AppMainScreen extends StatefulWidget {
 
 class _AppMainScreenState extends State<AppMainScreen> {
   int selectedIndex = 0;
-  final List pages = [
+  final List<Widget> pages = [
     const AppHomeScreen(),
     const SearchScreen(),
-    const Scaffold(),
-    const Scaffold(),
+    const Scaffold(), // Orders screen
+    const Scaffold(body: Center(child: Text('Please log in to view profile'))),
   ];
+
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       bottomNavigationBar: BottomNavigationBar(
@@ -30,10 +36,20 @@ class _AppMainScreenState extends State<AppMainScreen> {
         type: BottomNavigationBarType.fixed,
         currentIndex: selectedIndex,
         onTap: (value) {
+          if (value == 3) {
+            // Profile tab
+            if (!authService.isAuthenticated) {
+              Navigator.pushNamed(context, '/login',
+                  arguments: {'redirect': 'profile'});
+              return;
+            } else {
+              // Replace the profile placeholder with actual ProfileScreen
+              pages[3] = const ProfileScreen();
+            }
+          }
           setState(() {
             selectedIndex = value;
           });
-          selectedIndex = value;
         },
         items: const [
           BottomNavigationBarItem(
