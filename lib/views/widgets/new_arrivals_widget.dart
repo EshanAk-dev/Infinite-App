@@ -31,7 +31,7 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://infinite-clothing-backend.onrender.com/api/products/new-arrivals'),
+            'https://infinite-clothing.onrender.com/api/products/new-arrivals'),
       );
 
       if (response.statusCode == 200) {

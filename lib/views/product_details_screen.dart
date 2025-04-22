@@ -40,7 +40,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://infinite-clothing-backend.onrender.com/api/products/${widget.productId}'),
+            'https://infinite-clothing.onrender.com/api/products/${widget.productId}'),
       );
 
       if (response.statusCode == 200) {
@@ -70,7 +70,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://infinite-clothing-backend.onrender.com/api/products/similar/${widget.productId}'),
+            'https://infinite-clothing.onrender.com/api/products/similar/${widget.productId}'),
       );
 
       if (response.statusCode == 200) {

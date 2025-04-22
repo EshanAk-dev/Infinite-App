@@ -43,7 +43,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
 
       final response = await http.get(
         Uri.parse(
-            'https://infinite-clothing-backend.onrender.com/api/products${queryParam}'),
+            'https://infinite-clothing.onrender.com/api/products${queryParam}'),
       );
 
       if (response.statusCode == 200) {

@@ -31,7 +31,7 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://infinite-clothing-backend.onrender.com/api/products?gender=Women&category=Top+Wear'),
+            'https://infinite-clothing.onrender.com/api/products?gender=Women&category=Top+Wear'),
       );
 
       if (response.statusCode == 200) {

@@ -37,7 +37,7 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://infinite-clothing-backend.onrender.com/api/products?search=$query'),
+            'https://infinite-clothing.onrender.com/api/products?search=$query'),
       );
 
       if (response.statusCode == 200) {
