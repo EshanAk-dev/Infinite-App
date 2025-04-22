@@ -45,8 +45,8 @@ class _AppMainScreenState extends State<AppMainScreen> {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Iconsax.notification),
-            label: 'Notifications',
+            icon: Icon(Iconsax.box),
+            label: 'Orders',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
