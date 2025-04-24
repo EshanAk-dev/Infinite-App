@@ -128,6 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               final success = await authService.login(
                                 email: _emailController.text.trim(),
                                 password: _passwordController.text,
+                                context: context, // Pass the context here
                               );
 
                               if (success) {

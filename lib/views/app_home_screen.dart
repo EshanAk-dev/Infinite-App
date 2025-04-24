@@ -2,11 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:infinite_app/views/cart_screen.dart';
 import 'package:infinite_app/views/widgets/banner.dart';
 import 'package:infinite_app/views/collection_screen.dart';
 import 'package:infinite_app/views/widgets/new_arrivals_widget.dart';
 import 'package:infinite_app/views/widgets/women_topwear_widget.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:infinite_app/services/cart_service.dart';
+import 'package:provider/provider.dart';
 
 class AppHomeScreen extends StatefulWidget {
   const AppHomeScreen({super.key});
@@ -73,33 +76,54 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
                       height: 40,
                     ),
                     // Shopping bag with badge
-                    Stack(
-                      clipBehavior: Clip.none,
-                      alignment: Alignment.topRight,
-                      children: [
-                        const Icon(Iconsax.shopping_bag, size: 28),
-                        if (cartItemCount > 0)
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  "$cartItemCount",
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
+                    Consumer<CartService>(
+                      builder: (context, cart, child) {
+                        return Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Iconsax.shopping_bag, size: 28),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const CartScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            if (cart.itemCount > 0)
+                              Positioned(
+                                right:
+                                    8, // Adjusted to better position on the icon
+                                top:
+                                    6, // Adjusted to better position on the icon
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      cart.itemCount.toString(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10, // Slightly smaller font
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                      ],
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),

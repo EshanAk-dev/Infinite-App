@@ -4,12 +4,16 @@ import 'package:infinite_app/views/splash_screen.dart';
 import 'package:infinite_app/views/login_screen.dart';
 import 'package:infinite_app/views/app_main_screen.dart';
 import 'package:infinite_app/services/auth_service.dart';
+import 'package:infinite_app/services/cart_service.dart';
 import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthService(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthService()),
+        ChangeNotifierProvider(create: (context) => CartService()),
+      ],
       child: const MyApp(),
     ),
   );

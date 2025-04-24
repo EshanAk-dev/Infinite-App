@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:infinite_app/services/cart_service.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
 
 class User {
   final String id;
@@ -80,7 +83,10 @@ class AuthService with ChangeNotifier {
     }
   }
 
-  Future<bool> login({required String email, required String password}) async {
+  Future<bool> login(
+      {required String email,
+      required BuildContext context,
+      required String password}) async {
     _loading = true;
     _error = null;
     notifyListeners();
@@ -102,6 +108,16 @@ class AuthService with ChangeNotifier {
         final user = User.fromJson(data['user'], data['token']);
         _user = user;
         notifyListeners();
+
+        // Merge guest cart with user cart if guest cart exists
+        final cartService = Provider.of<CartService>(context, listen: false);
+        if (cartService.guestId != null) {
+          await cartService.mergeCarts(
+            context: context,
+            guestId: cartService.guestId!,
+          );
+        }
+
         return true;
       } else {
         Map<String, dynamic> data;

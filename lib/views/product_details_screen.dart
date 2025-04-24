@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:iconsax/iconsax.dart';
+import 'package:infinite_app/views/cart_screen.dart';
 import 'package:infinite_app/views/collection_screen.dart';
+import 'package:infinite_app/services/cart_service.dart';
+import 'package:provider/provider.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -106,6 +109,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       return;
     }
 
+    Provider.of<CartService>(context, listen: false).addToCart(
+      context: context,
+      productId: widget.productId,
+      name: product!['name'],
+      image: product!['images'][0]['url'],
+      price: product!['price'].toDouble(),
+      size: selectedSize!,
+      color: selectedColor!,
+      quantity: quantity,
+    );
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Product added to the cart!'),
@@ -146,9 +160,55 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Iconsax.shopping_bag),
-            onPressed: () {},
+          Padding(
+            padding: const EdgeInsets.only(right: 15.0),
+            child: Consumer<CartService>(
+              builder: (context, cart, child) {
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Iconsax.shopping_bag, size: 28),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CartScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    if (cart.itemCount > 0)
+                      Positioned(
+                        right: 6, // Reduced from 8 to move badge left
+                        top: 6,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              cart.itemCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),
