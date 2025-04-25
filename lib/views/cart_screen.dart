@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:infinite_app/services/cart_service.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +30,7 @@ class _CartScreenState extends State<CartScreen> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(
-          'Your Cart',
+          'Shopping Cart',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,

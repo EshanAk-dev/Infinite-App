@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/views/app_home_screen.dart';
@@ -5,6 +7,7 @@ import 'package:infinite_app/views/search_screen.dart';
 import 'package:infinite_app/views/profile_screen.dart';
 import 'package:infinite_app/services/auth_service.dart';
 import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class AppMainScreen extends StatefulWidget {
   const AppMainScreen({super.key});
@@ -14,63 +17,117 @@ class AppMainScreen extends StatefulWidget {
 }
 
 class _AppMainScreenState extends State<AppMainScreen> {
-  int selectedIndex = 0;
-  final List<Widget> pages = [
+  int _selectedIndex = 0;
+  DateTime? lastBackPressed;
+
+  final List<Widget> _pages = [
     const AppHomeScreen(),
     const SearchScreen(),
-    const Scaffold(), // Orders screen
-    const Scaffold(body: Center(child: Text('Please log in to view profile'))),
+    const Scaffold(),
+    const ProfileScreen(),
   ];
+
+  Future<bool> _onWillPop() async {
+    final now = DateTime.now();
+    if (lastBackPressed == null ||
+        now.difference(lastBackPressed!) > const Duration(seconds: 2)) {
+      lastBackPressed = now;
+      Fluttertoast.showToast(
+        msg: 'Press back again to exit',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black87,
+        textColor: Colors.white,
+        fontSize: 14,
+      );
+      return false;
+    }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final authService = Provider.of<AuthService>(context);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      bottomNavigationBar: BottomNavigationBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        unselectedItemColor: Colors.black38,
-        selectedItemColor: Colors.black,
-        type: BottomNavigationBarType.fixed,
-        currentIndex: selectedIndex,
-        onTap: (value) {
-          if (value == 3) {
-            // Profile tab
-            if (!authService.isAuthenticated) {
-              Navigator.pushNamed(context, '/login',
-                  arguments: {'redirect': 'profile'});
-              return;
-            } else {
-              // Replace the profile placeholder with actual ProfileScreen
-              pages[3] = const ProfileScreen();
-            }
-          }
-          setState(() {
-            selectedIndex = value;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Iconsax.home),
-            label: 'Home',
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: _pages,
+        ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Iconsax.search_normal),
-            label: 'Search',
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavItem(0, Iconsax.home_24, 'Home'),
+                  _buildNavItem(1, Iconsax.search_normal_1, 'Search'),
+                  _buildNavItem(2, Iconsax.box_1, 'Orders'),
+                  _buildNavItem(3, Iconsax.profile_circle, 'Profile'),
+                ],
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Iconsax.box),
-            label: 'Orders',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
+        ),
       ),
-      body: pages[selectedIndex],
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isSelected = _selectedIndex == index;
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: () => setState(() => _selectedIndex = index),
+      customBorder: const CircleBorder(),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 70,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color:
+              isSelected ? Colors.black.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected
+                  ? Colors.black
+                  : theme.colorScheme.onSurface.withOpacity(0.6),
+              size: 22,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: isSelected
+                    ? Colors.black
+                    : theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

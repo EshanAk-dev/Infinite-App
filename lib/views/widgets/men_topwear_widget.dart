@@ -6,25 +6,25 @@ import 'dart:convert';
 import 'package:infinite_app/views/collection_screen.dart';
 import 'package:infinite_app/views/product_details_screen.dart';
 
-class WomenTopWearWidget extends StatefulWidget {
-  const WomenTopWearWidget({super.key});
+class MenTopWearWidget extends StatefulWidget {
+  const MenTopWearWidget({super.key});
 
   @override
-  State<WomenTopWearWidget> createState() => _WomenTopWearWidgetState();
+  State<MenTopWearWidget> createState() => _MenTopWearWidgetState();
 }
 
-class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
-  List<dynamic> womenTopWear = [];
+class _MenTopWearWidgetState extends State<MenTopWearWidget> {
+  List<dynamic> menTopWear = [];
   bool isLoading = true;
   String errorMessage = '';
 
   @override
   void initState() {
     super.initState();
-    fetchWomenTopWear();
+    fetchMenTopWear();
   }
 
-  Future<void> fetchWomenTopWear() async {
+  Future<void> fetchMenTopWear() async {
     if (!mounted) return; // ensure widget is still in tree
     setState(() {
       isLoading = true;
@@ -34,7 +34,7 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://infinite-clothing.onrender.com/api/products?gender=Women&category=Top+Wear'),
+            'https://infinite-clothing.onrender.com/api/products?gender=Men&category=Top+Wear'),
       );
 
       if (!mounted) return; // prevent setState after dispose
@@ -43,13 +43,13 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
         final data = json.decode(response.body);
         if (!mounted) return;
         setState(() {
-          womenTopWear = data;
+          menTopWear = data;
           isLoading = false;
         });
       } else {
         if (!mounted) return;
         setState(() {
-          errorMessage = 'Failed to load women top wear';
+          errorMessage = 'Failed to load men top wear';
           isLoading = false;
         });
       }
@@ -73,7 +73,7 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                "Top Wear for Women",
+                "Top Wear for Men",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -116,7 +116,7 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
                         ),
                       ),
                     )
-                  : womenTopWear.isEmpty
+                  : menTopWear.isEmpty
                       ? const Center(
                           child: Text(
                             'No products found',
@@ -130,9 +130,9 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 15),
                           itemCount:
-                              womenTopWear.length > 6 ? 6 : womenTopWear.length,
+                              menTopWear.length > 6 ? 6 : menTopWear.length,
                           itemBuilder: (context, index) {
-                            final product = womenTopWear[index];
+                            final product = menTopWear[index];
                             return _buildProductCard(product);
                           },
                         ),

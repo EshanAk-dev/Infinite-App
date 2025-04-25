@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:infinite_app/views/product_details_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:infinite_app/services/cart_service.dart';
+import 'package:infinite_app/views/cart_screen.dart';
+import 'package:infinite_app/views/widgets/product_card_widget.dart';
 
 class CollectionScreen extends StatefulWidget {
   final String category;
@@ -34,7 +37,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
       String queryParam = '';
 
       if (widget.category == 'All') {
-        // No specific filter for "All"
+        // No filter for All
       } else if (widget.category == 'Men' || widget.category == 'Women') {
         queryParam = '?gender=${widget.category}';
       } else {
@@ -43,7 +46,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
 
       final response = await http.get(
         Uri.parse(
-            'https://infinite-clothing.onrender.com/api/products${queryParam}'),
+            'https://infinite-clothing.onrender.com/api/products$queryParam'),
       );
 
       if (response.statusCode == 200) {
@@ -60,7 +63,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
       }
     } catch (e) {
       setState(() {
-        errorMessage = 'Error: ${e.toString()}';
+        // errorMessage = 'Error: ${e.toString()}';
         isLoading = false;
       });
     }
@@ -89,225 +92,106 @@ class _CollectionScreenState extends State<CollectionScreen> {
             icon: const Icon(Iconsax.search_normal, color: Colors.black87),
             onPressed: () {},
           ),
-          Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.topRight,
-            children: [
-              IconButton(
-                icon: const Icon(Iconsax.shopping_bag, color: Colors.black87),
-                onPressed: () {},
-              ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
+          Consumer<CartService>(
+            builder: (context, cart, child) {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(Iconsax.bag_2, size: 28),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CartScreen(),
+                        ),
+                      );
+                    },
                   ),
-                  child: const Center(
-                    child: Text(
-                      "3",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
+                  if (cart.itemCount > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            cart.itemCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
           const SizedBox(width: 10),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Showing ${products.length} results',
-              style: const TextStyle(
-                color: Colors.black54,
-                fontSize: 14,
-              ),
-            ),
-          ),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : errorMessage.isNotEmpty
-                    ? Center(child: Text(errorMessage))
-                    : products.isEmpty
-                        ? const Center(child: Text('No products found'))
-                        : GridView.builder(
-                            padding: const EdgeInsets.all(16),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.65,
-                              crossAxisSpacing: 15,
-                              mainAxisSpacing: 15,
-                            ),
-                            itemCount: products.length,
-                            itemBuilder: (context, index) {
-                              final product = products[index];
-                              return ProductCard(
-                                product: product,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ProductDetailScreen(
-                                        productId: product['_id'],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ProductCard extends StatelessWidget {
-  final dynamic product;
-  final VoidCallback onTap;
-
-  const ProductCard({
-    super.key,
-    required this.product,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
+      body: Container(
         decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Colors.grey[50]!],
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Image with discount badge
-            Expanded(
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(12)),
-                      image: DecorationImage(
-                        image: NetworkImage(product['images'][0]['url']),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(
+                  'Showing ${products.length} results',
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 14,
                   ),
-                  if (product['discountPrice'] != null)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${(((product['discountPrice'] - product['price']) / product['discountPrice']) * 100).round()}% OFF',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+                ),
               ),
             ),
-
-            // Product Info
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product['name'],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    product['brand'] ?? '',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        'Rs.${(product['price'] as num).toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12,
-                          color: Colors.red,
-                        ),
-                      ),
-                      if (product['discountPrice'] != null) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          'Rs.${(product['discountPrice'] as num).toStringAsFixed(2)}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                            decoration: TextDecoration.lineThrough,
+            isLoading
+                ? SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()))
+                : errorMessage.isNotEmpty
+                    ? SliverFillRemaining(
+                        child: Center(child: Text(errorMessage)))
+                    : products.isEmpty
+                        ? SliverFillRemaining(
+                            child: Center(child: Text('No products found')))
+                        : SliverPadding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            sliver: SliverGrid(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 16,
+                                crossAxisSpacing: 16,
+                                childAspectRatio: 0.7,
+                              ),
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final product = products[index];
+                                  return ProductCardWidget(product: product);
+                                },
+                                childCount: products.length,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Select Options Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: onTap,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black87,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Select Options',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),

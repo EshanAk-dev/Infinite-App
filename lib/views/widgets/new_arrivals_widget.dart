@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -32,8 +34,7 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://infinite-clothing.onrender.com/api/products/new-arrivals',
-        ),
+            'https://infinite-clothing.onrender.com/api/products/new-arrivals'),
       );
 
       if (!mounted) return;
@@ -55,7 +56,7 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        errorMessage = 'Error: ${e.toString()}';
+        // errorMessage = 'Error: ${e.toString()}';
         isLoading = false;
       });
     }
@@ -118,7 +119,7 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
                   : newArrivals.isEmpty
                       ? const Center(
                           child: Text(
-                            'No new arrivals found',
+                            'No products found',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.black54,
@@ -146,127 +147,111 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductDetailScreen(
-              productId: product['_id'],
-            ),
+            builder: (context) =>
+                ProductDetailScreen(productId: product['_id']),
           ),
         );
       },
       child: Container(
         width: 160,
-        margin: const EdgeInsets.only(right: 15),
+        margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(
-              children: [
-                Container(
-                  height: 155,
-                  decoration: BoxDecoration(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(12)),
-                    image: DecorationImage(
-                      image: NetworkImage(product['images'][0]['url']),
-                      fit: BoxFit.cover,
-                    ),
+            // Product Image with Discount Badge
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Stack(
+                children: [
+                  Image.network(
+                    product['images'][0]['url'],
+                    height: 170,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
                   ),
-                ),
-                if (product['discountPrice'] != null)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${(((product['discountPrice'] - product['price']) / product['discountPrice']) * 100).round()}% OFF',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                  if (product['discountPrice'] != null)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.red[400],
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${(((product['discountPrice'] - product['price']) / product['discountPrice']) * 100).round()}% OFF',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
+
+            // Product Info
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
+                    product['brand'] ?? '',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 0),
+                  Text(
                     product['name'],
                     style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 0),
                   Row(
                     children: [
                       Text(
                         'Rs.${(product['price'] as num).toStringAsFixed(2)}',
                         style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
                           color: Colors.red,
                         ),
                       ),
                       if (product['discountPrice'] != null) ...[
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
                         Text(
                           'Rs.${(product['discountPrice'] as num).toStringAsFixed(2)}',
                           style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 10,
+                            color: Colors.grey[500],
+                            fontSize: 11,
                             decoration: TextDecoration.lineThrough,
                           ),
                         ),
                       ],
                     ],
-                  ),
-                  const SizedBox(height: 6),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 30,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProductDetailScreen(
-                              productId: product['_id'],
-                            ),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      child: const Text(
-                        'Select Options',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
                   ),
                 ],
               ),

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/services/auth_service.dart';
 import 'package:provider/provider.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/services.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,7 +15,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
-  DateTime? lastBackPressed;
 
   @override
   void initState() {
@@ -33,14 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       await authService.fetchUserProfile();
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: 'Failed to fetch user profile',
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 14,
-      );
+      _showToast('Failed to fetch profile', isError: true);
     } finally {
       setState(() {
         _isLoading = false;
@@ -48,124 +40,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _showToast(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.black87,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
     final user = authService.user;
+    final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: _handleBackPress,
-      child: Scaffold(
-        backgroundColor: Colors.grey[50],
-        body: authService.isAuthenticated
-            ? _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _buildProfileContent(context, authService, user)
-            : _buildGuestContent(context),
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'Profile',
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          if (authService.isAuthenticated)
+            IconButton(
+              icon: const Icon(Iconsax.setting_4),
+              onPressed: () {
+                _showToast('Settings coming soon');
+              },
+            ),
+        ],
       ),
+      body: authService.isAuthenticated
+          ? _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _buildProfileContent(context, authService, user)
+          : _buildGuestContent(context),
     );
-  }
-
-  Future<bool> _handleBackPress() async {
-    final now = DateTime.now();
-    if (lastBackPressed == null ||
-        now.difference(lastBackPressed!) > const Duration(seconds: 2)) {
-      lastBackPressed = now;
-      Fluttertoast.showToast(
-        msg: 'Press back again to exit',
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.black87,
-        textColor: Colors.white,
-        fontSize: 14,
-      );
-      return false;
-    }
-    return true;
   }
 
   Widget _buildProfileContent(
       BuildContext context, AuthService authService, dynamic user) {
+    final theme = Theme.of(context);
+
     return RefreshIndicator(
       onRefresh: _fetchUserProfile,
-      child: SafeArea(
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              _buildProfileCard(user, authService),
-              _buildAccountSettings(context),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileCard(dynamic user, AuthService authService) {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildProfileHeader(user),
-          _buildProfileDetails(user, authService),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader(dynamic user) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        gradient: const LinearGradient(
-          colors: [Colors.indigo, Colors.purple],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Iconsax.user, color: Colors.white, size: 32),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
+      color: Colors.black,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  user?.name ?? 'User',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                _buildProfileHeader(user, theme),
+                const SizedBox(height: 24),
+                _buildProfileActions(theme),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Account',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface.withOpacity(0.8),
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  user?.role ?? 'member',
-                  style: TextStyle(
-                    color: Colors.indigo[100],
+                _buildAccountSettings(context, theme),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Preferences',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface.withOpacity(0.8),
+                    ),
+                  ),
+                ),
+                _buildPreferences(context, theme),
+              ],
+            ),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Iconsax.logout, size: 18),
+                    label: const Text('Sign Out'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.red[700],
+                      backgroundColor: Colors.red.withOpacity(0.1),
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      _showSignOutDialog(context, authService);
+                    },
                   ),
                 ),
               ],
@@ -176,34 +166,263 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileDetails(dynamic user, AuthService authService) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+  Widget _buildProfileHeader(dynamic user, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Row(
         children: [
-          ListTile(
-            leading: const Icon(Iconsax.sms, color: Colors.grey),
-            title: Text(user?.email ?? 'user@example.com'),
-          ),
-          ListTile(
-            leading: const Icon(Iconsax.user_octagon, color: Colors.grey),
-            title: Text('User ID: ${user?.id ?? 'Unknown'}'),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            icon: const Icon(Iconsax.logout),
-            label: const Text('Sign Out'),
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.red,
-              backgroundColor: Colors.red[50],
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.black, theme.colorScheme.secondary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                (user?.name?.substring(0, 1) ?? 'U').toUpperCase(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            onPressed: () {
-              authService.logout();
-              Navigator.pushReplacementNamed(context, '/main');
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user?.name ?? 'User',
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  user?.email ?? 'user@example.com',
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    user?.role?.toUpperCase() ?? 'MEMBER',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileActions(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildActionButton(
+              theme,
+              Iconsax.edit,
+              'Edit Profile',
+              () {
+                _showToast('Edit profile coming soon');
+              },
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildActionButton(
+              theme,
+              Iconsax.security_safe,
+              'Privacy',
+              () {
+                _showToast('Privacy settings coming soon');
+              },
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildActionButton(
+              theme,
+              Iconsax.notification,
+              'Alerts',
+              () {
+                _showToast('Notification settings coming soon');
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(
+    ThemeData theme,
+    IconData icon,
+    String label,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: Colors.black,
+              size: 24,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingItem(
+      BuildContext context, ThemeData theme, IconData icon, String title,
+      {String? subtitle, VoidCallback? onTap, Color? iconColor}) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (iconColor ?? Colors.black).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: iconColor ?? Colors.black,
+              size: 20,
+            ),
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          subtitle: subtitle != null
+              ? Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    fontSize: 13,
+                  ),
+                )
+              : null,
+          trailing: Icon(
+            Iconsax.arrow_right_3,
+            color: theme.colorScheme.onSurface.withOpacity(0.3),
+            size: 18,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAccountSettings(BuildContext context, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildSettingItem(
+            context,
+            theme,
+            Iconsax.security_user,
+            'Security',
+            subtitle: 'Password, 2FA, recovery options',
+            onTap: () {
+              _showToast('Security settings coming soon');
+            },
+          ),
+          Divider(color: theme.colorScheme.outline.withOpacity(0.2)),
+          _buildSettingItem(
+            context,
+            theme,
+            Iconsax.card,
+            'Payment Methods',
+            subtitle: 'Connected credit/debit cards',
+            onTap: () {
+              _showToast('Payment methods coming soon');
+            },
+          ),
+          Divider(color: theme.colorScheme.outline.withOpacity(0.2)),
+          _buildSettingItem(
+            context,
+            theme,
+            Iconsax.location,
+            'Address',
+            subtitle: 'Shipping and billing addresses',
+            onTap: () {
+              _showToast('Address settings coming soon');
             },
           ),
         ],
@@ -211,56 +430,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildAccountSettings(BuildContext context) {
+  Widget _buildPreferences(BuildContext context, ThemeData theme) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
+            color: theme.shadowColor.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Account Settings',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          _buildSettingItem(
+            context,
+            theme,
+            Iconsax.like_1,
+            'Your Interests',
+            onTap: () {
+              _showToast('Interests settings coming soon');
+            },
+          ),
+          Divider(color: theme.colorScheme.outline.withOpacity(0.2)),
+          _buildSettingItem(
+            context,
+            theme,
+            Iconsax.colorfilter,
+            'Appearance',
+            subtitle: 'Dark mode & theme settings',
+            onTap: () {
+              _showToast('Appearance settings coming soon');
+            },
+          ),
+          Divider(color: theme.colorScheme.outline.withOpacity(0.2)),
+          _buildSettingItem(
+            context,
+            theme,
+            Iconsax.language_square,
+            'Language',
+            subtitle: 'English (US)',
+            onTap: () {
+              _showToast('Language settings coming soon');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSignOutDialog(BuildContext context, AuthService authService) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
             ),
-          ),
-          const SizedBox(height: 16),
-          ListTile(
-            leading: const Icon(Iconsax.password_check, color: Colors.grey),
-            title: const Text('Change Password'),
-            trailing: const Icon(Iconsax.arrow_right_3),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Feature coming soon!'),
-                ),
-              );
+            onPressed: () {
+              Navigator.pop(context);
+              authService.logout();
+              Navigator.pushReplacementNamed(context, '/main');
             },
-          ),
-          ListTile(
-            leading: const Icon(Iconsax.card, color: Colors.grey),
-            title: const Text('Payment Methods'),
-            trailing: const Icon(Iconsax.arrow_right_3),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Feature coming soon!'),
-                ),
-              );
-            },
+            child: const Text('Sign Out'),
           ),
         ],
       ),
@@ -268,6 +511,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildGuestContent(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -275,54 +520,90 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 100,
-              height: 100,
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
-                color: Colors.indigo.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Iconsax.user, size: 50, color: Colors.indigo),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Guest User',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Sign in to access your profile, orders, and settings',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                gradient: LinearGradient(
+                  colors: [Colors.black, theme.colorScheme.secondary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/login',
-                      arguments: {'redirect': 'profile'});
-                },
-                child: const Text('Sign In'),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Iconsax.user,
+                size: 60,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 40),
+            Text(
+              'Join Us Today',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 16),
+            Text(
+              'Sign in to access your profile, track orders, and personalize your experience',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                fontSize: 16,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 40),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 4,
+                shadowColor: Colors.black.withOpacity(0.5),
+                minimumSize: const Size(double.infinity, 56),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  '/login',
+                  arguments: {'redirect': 'profile'},
+                );
+              },
+              child: const Text(
+                'Sign In',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/register');
               },
-              child: const Text("Don't have an account? Create one"),
+              child: Text(
+                "Don't have an account? Create one",
+                style: TextStyle(
+                  color: Colors.blueAccent,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),

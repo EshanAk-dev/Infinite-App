@@ -3,10 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:http/http.dart' as http;
+import 'package:infinite_app/views/widgets/product_card_widget.dart';
 import 'dart:convert';
-import 'product_details_screen.dart';
-import 'collection_screen.dart'; // For ProductCard widget reuse
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
+import 'package:infinite_app/services/cart_service.dart';
+import 'package:infinite_app/views/cart_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -21,6 +22,7 @@ class _SearchScreenState extends State<SearchScreen> {
   bool isLoading = false;
   String errorMessage = '';
   DateTime? lastBackPressed;
+  FocusNode _searchFocusNode = FocusNode();
 
   Future<void> searchProducts(String query) async {
     if (query.isEmpty) {
@@ -63,97 +65,160 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _searchFocusNode.requestFocus();
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        final now = DateTime.now();
-        if (lastBackPressed == null ||
-            now.difference(lastBackPressed!) > const Duration(seconds: 2)) {
-          lastBackPressed = now;
-          Fluttertoast.showToast(
-            msg: 'Press back again to exit',
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.black87,
-            textColor: Colors.white,
-            fontSize: 14,
-          );
-          return false;
-        }
-        return true;
-      },
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          title: const Text(
-            'Search',
-            style: TextStyle(
-              color: Colors.black87,
-              fontWeight: FontWeight.w600,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextField(
+            controller: _searchController,
+            focusNode: _searchFocusNode,
+            decoration: InputDecoration(
+              hintText: 'Search for products...',
+              hintStyle: TextStyle(color: Colors.grey[600]),
+              prefixIcon: Icon(Iconsax.search_normal, color: Colors.grey[600]),
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(Icons.close, color: Colors.grey[600]),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          products = [];
+                          errorMessage = '';
+                        });
+                      },
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
             ),
+            style: TextStyle(color: Colors.black87),
+            onChanged: (value) => searchProducts(value),
+            onSubmitted: (value) => searchProducts(value),
           ),
         ),
-        body: Column(
+        actions: [
+          Consumer<CartService>(
+            builder: (context, cart, child) {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(Iconsax.bag_2, size: 28),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CartScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  if (cart.itemCount > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            cart.itemCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white,
+              Colors.grey[50]!,
+            ],
+          ),
+        ),
+        child: Column(
           children: [
-            // Search bar
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search for products...',
-                  prefixIcon:
-                      const Icon(Iconsax.search_normal, color: Colors.black54),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.close, color: Colors.black54),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              products = [];
-                              errorMessage = '';
-                            });
-                          },
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.black54),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.black87),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onChanged: (value) {
-                  searchProducts(value);
-                },
-                onSubmitted: (value) {
-                  searchProducts(value);
-                },
-              ),
-            ),
-            // Results
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(Colors.black),
+                      ),
+                    )
                   : errorMessage.isNotEmpty
                       ? Center(
-                          child: Text(
-                            errorMessage,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 16,
-                            ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.error_outline,
+                                  size: 48, color: Colors.red[400]),
+                              const SizedBox(height: 16),
+                              Text(
+                                errorMessage,
+                                style: TextStyle(
+                                  color: Colors.grey[800],
+                                  fontSize: 16,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              OutlinedButton(
+                                onPressed: () =>
+                                    searchProducts(_searchController.text),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: Colors.grey[300]!),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text('Try Again'),
+                              ),
+                            ],
                           ),
                         )
                       : products.isEmpty
@@ -161,50 +226,59 @@ class _SearchScreenState extends State<SearchScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Iconsax.search_normal,
-                                      size: 48, color: Colors.black54),
-                                  const SizedBox(height: 16),
+                                  Icon(Iconsax.search_normal,
+                                      size: 64, color: Colors.grey[300]),
+                                  const SizedBox(height: 24),
                                   Text(
                                     _searchController.text.isEmpty
-                                        ? 'Search for products'
+                                        ? 'Search for your favorite products'
                                         : 'No products found',
-                                    style: const TextStyle(
-                                      color: Colors.black54,
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
                                       fontSize: 16,
                                     ),
                                   ),
+                                  if (_searchController.text.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Text(
+                                        'Try different keywords',
+                                        style: TextStyle(
+                                          color: Colors.grey[500],
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
                                 ],
                               ),
                             )
-                          : GridView.builder(
-                              padding: const EdgeInsets.all(16),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 0.65,
-                                crossAxisSpacing: 15,
-                                mainAxisSpacing: 15,
-                              ),
-                              itemCount: products.length,
-                              itemBuilder: (context, index) {
-                                final product = products[index];
-                                return ProductCard(
-                                  product: product,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            ProductDetailScreen(
-                                          productId: product['_id'],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
+                          : CustomScrollView(
+                              slivers: [
+                                SliverPadding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  sliver: SliverGrid(
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      mainAxisSpacing: 16,
+                                      crossAxisSpacing: 16,
+                                      childAspectRatio: 0.7,
+                                    ),
+                                    delegate: SliverChildBuilderDelegate(
+                                      (context, index) {
+                                        final product = products[index];
+                                        return ProductCardWidget(
+                                          product: product,
+                                        );
+                                      },
+                                      childCount: products.length,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-            ),
+            )
           ],
         ),
       ),

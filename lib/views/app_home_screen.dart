@@ -1,15 +1,14 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/views/cart_screen.dart';
 import 'package:infinite_app/views/widgets/banner.dart';
 import 'package:infinite_app/views/collection_screen.dart';
+import 'package:infinite_app/views/widgets/men_topwear_widget.dart';
 import 'package:infinite_app/views/widgets/new_arrivals_widget.dart';
 import 'package:infinite_app/views/widgets/women_topwear_widget.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:infinite_app/services/cart_service.dart';
 import 'package:provider/provider.dart';
+import 'package:infinite_app/views/widgets/trendy_products_widget.dart';
 
 class AppHomeScreen extends StatefulWidget {
   const AppHomeScreen({super.key});
@@ -20,14 +19,17 @@ class AppHomeScreen extends StatefulWidget {
 
 class _AppHomeScreenState extends State<AppHomeScreen> {
   int selectedCategoryIndex = 0;
-  DateTime? lastBackPressed;
-  int cartItemCount = 3; // Example cart item count
+  final FocusNode _focusNode = FocusNode();
+
   final List<Map<String, String>> categoryData = [
     {'name': 'All', 'image': 'assets/category_image/all.jpg'},
     {'name': 'Men', 'image': 'assets/category_image/men.jpg'},
     {'name': 'Women', 'image': 'assets/category_image/women.jpg'},
+    {'name': 'Dresses', 'image': 'assets/category_image/dress.jpg'},
     {'name': 'Top Wear', 'image': 'assets/category_image/top_wear.jpg'},
     {'name': 'Bottom Wear', 'image': 'assets/category_image/bottom_wear.jpg'},
+    {'name': 'Hats', 'image': 'assets/category_image/hats.jpg'},
+    {'name': 'Aprons', 'image': 'assets/category_image/apron.jpg'},
   ];
 
   void navigateToCollection(String category) {
@@ -40,49 +42,54 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_focusNode);
+      FocusScope.of(context).unfocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        final now = DateTime.now();
-        if (lastBackPressed == null ||
-            now.difference(lastBackPressed!) > const Duration(seconds: 2)) {
-          lastBackPressed = now;
-          Fluttertoast.showToast(
-            msg: 'Press back again to exit',
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.black87,
-            textColor: Colors.white,
-            fontSize: 14,
-          );
-          return false;
-        }
-        return true; // Exit app
-      },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 50),
-              // Header
-              Padding(
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              backgroundColor: colorScheme.surface,
+              elevation: 0,
+              pinned: true,
+              floating: true,
+              automaticallyImplyLeading: false,
+              titleSpacing: 0,
+              title: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Image.asset(
                       "assets/infinite_logo.png",
-                      height: 40,
+                      height: 32,
+                      fit: BoxFit.contain,
                     ),
-                    // Shopping bag with badge
                     Consumer<CartService>(
                       builder: (context, cart, child) {
                         return Stack(
                           clipBehavior: Clip.none,
                           children: [
                             IconButton(
-                              icon: const Icon(Iconsax.shopping_bag, size: 28),
+                              icon: const Icon(Iconsax.bag_2, size: 28),
                               onPressed: () {
                                 Navigator.push(
                                   context,
@@ -94,10 +101,8 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
                             ),
                             if (cart.itemCount > 0)
                               Positioned(
-                                right:
-                                    8, // Adjusted to better position on the icon
-                                top:
-                                    6, // Adjusted to better position on the icon
+                                right: 6,
+                                top: 6,
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   constraints: const BoxConstraints(
@@ -113,7 +118,7 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
                                       cart.itemCount.toString(),
                                       style: const TextStyle(
                                         color: Colors.white,
-                                        fontSize: 10, // Slightly smaller font
+                                        fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                       ),
                                       textAlign: TextAlign.center,
@@ -128,27 +133,31 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              // Banner
-              const HomeBanner(),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            ),
+          ];
+        },
+        body: CustomScrollView(
+          slivers: [
+            // Home Banner
+            const SliverToBoxAdapter(
+              child: HomeBanner(),
+            ),
+
+            // Shop By Category Section
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              sliver: SliverToBoxAdapter(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       "Shop By Category",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        navigateToCollection('All');
-                      },
+                    TextButton(
+                      onPressed: () => navigateToCollection('All'),
                       child: const Text(
                         "See All",
                         style: TextStyle(
@@ -161,38 +170,52 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
                   ],
                 ),
               ),
-              // Category List
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Row(
-                    children: List.generate(categoryData.length, (index) {
-                      final category = categoryData[index];
-                      return CategoryItem(
-                        categoryName: category['name']!,
-                        categoryImage: category['image']!,
-                        isSelected: selectedCategoryIndex == index,
-                        onTap: () {
-                          setState(() {
-                            selectedCategoryIndex = index;
-                          });
-                          navigateToCollection(category['name']!);
-                        },
-                      );
-                    }),
-                  ),
+            ),
+
+            // Category List
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 90,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: categoryData.length,
+                  itemBuilder: (context, index) {
+                    final category = categoryData[index];
+                    return CategoryItem(
+                      categoryName: category['name']!,
+                      categoryImage: category['image']!,
+                      isSelected: selectedCategoryIndex == index,
+                      onTap: () {
+                        setState(() {
+                          selectedCategoryIndex = index;
+                        });
+                        navigateToCollection(category['name']!);
+                      },
+                    );
+                  },
                 ),
               ),
-              const SizedBox(height: 20),
-              // New Arrivals
-              const NewArrivalWidget(),
-              const SizedBox(height: 20),
-              // Women's Top Wear
-              const WomenTopWearWidget(),
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+            // New Arrivals
+            const SliverToBoxAdapter(child: NewArrivalWidget()),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+            // Women's Top Wear
+            const SliverToBoxAdapter(child: WomenTopWearWidget()),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+            // Men's Top Wear
+            const SliverToBoxAdapter(child: MenTopWearWidget()),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+            // Trendy Products
+            const SliverToBoxAdapter(child: TrendyProductsWidget()),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          ],
         ),
       ),
     );
@@ -215,32 +238,44 @@ class CategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.only(right: 15),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: isSelected ? Colors.black : Colors.grey[200],
-              child: CircleAvatar(
-                radius: 26,
-                backgroundImage: AssetImage(categoryImage),
-                backgroundColor: Colors.white,
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? colorScheme.primary : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  categoryImage,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              categoryName,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: isSelected ? Colors.black : Colors.black54,
-              ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            categoryName,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.onSurface.withOpacity(0.6),
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
