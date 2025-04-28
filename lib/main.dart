@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:infinite_app/views/checkout_screen.dart';
 import 'package:infinite_app/views/register_screen.dart';
 import 'package:infinite_app/views/splash_screen.dart';
 import 'package:infinite_app/views/login_screen.dart';
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/main': (context) => const AppMainScreen(),
+        '/checkout': (context) => const CheckoutScreen(),
       },
     );
   }

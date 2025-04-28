@@ -5,8 +5,6 @@ import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/views/app_home_screen.dart';
 import 'package:infinite_app/views/search_screen.dart';
 import 'package:infinite_app/views/profile_screen.dart';
-import 'package:infinite_app/services/auth_service.dart';
-import 'package:provider/provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class AppMainScreen extends StatefulWidget {
@@ -48,7 +46,7 @@ class _AppMainScreenState extends State<AppMainScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authService = Provider.of<AuthService>(context);
+    // final authService = Provider.of<AuthService>(context);
 
     return WillPopScope(
       onWillPop: _onWillPop,

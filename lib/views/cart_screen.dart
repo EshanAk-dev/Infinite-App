@@ -1,7 +1,10 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:infinite_app/services/auth_service.dart';
 import 'package:infinite_app/services/cart_service.dart';
+import 'package:infinite_app/views/checkout_screen.dart';
+import 'package:infinite_app/views/login_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -24,7 +27,7 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context);
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -374,7 +377,24 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                 ),
                 onPressed: () {
-                  // Navigate to checkout
+                  final authService =
+                      Provider.of<AuthService>(context, listen: false);
+                  if (authService.isAuthenticated) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CheckoutScreen()),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                        settings: const RouteSettings(
+                            arguments: {'redirect': 'checkout'}),
+                      ),
+                    );
+                  }
                 },
                 child: const Text(
                   'Checkout',

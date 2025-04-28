@@ -829,8 +829,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildDetailRow(String label, String value) {
     // Handle null or empty values by showing 'N/A'
-    final displayValue =
-        (value == null || value.trim().isEmpty) ? 'N/A' : value;
+    final displayValue = value.trim().isEmpty ? 'N/A' : value;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

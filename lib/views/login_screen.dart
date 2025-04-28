@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/services/auth_service.dart';
+import 'package:infinite_app/views/checkout_screen.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -30,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
-    final size = MediaQuery.of(context).size;
+    // final size = MediaQuery.of(context).size;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -212,10 +213,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                   context: context,
                                 );
 
+                                // In the login button onPressed handler, update the navigation logic:
                                 if (success) {
-                                  if (_redirect == 'profile') {
-                                    Navigator.pushReplacementNamed(
-                                        context, '/main');
+                                  if (_redirect == 'checkout') {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const CheckoutScreen()),
+                                    );
                                   } else {
                                     Navigator.pushReplacementNamed(
                                         context, '/main');

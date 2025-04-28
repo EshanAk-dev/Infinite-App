@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/services/auth_service.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
