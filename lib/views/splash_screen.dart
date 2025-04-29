@@ -27,8 +27,8 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: SizedBox(
-          width: 180, // Adjust width as needed
-          height: 180, // Adjust height as needed
+          width: 180,
+          height: 180,
           child: Image.asset('assets/infinite_logo.png'),
         ),
       ),

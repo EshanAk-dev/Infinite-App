@@ -118,18 +118,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 _buildAccountSettings(context, theme),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    'Preferences',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface.withOpacity(0.8),
-                    ),
-                  ),
-                ),
-                _buildPreferences(context, theme),
               ],
             ),
           ),
@@ -422,58 +410,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             subtitle: 'Shipping and billing addresses',
             onTap: () {
               _showToast('Address settings coming soon');
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreferences(BuildContext context, ThemeData theme) {
-    return Container(
-      margin: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: theme.shadowColor.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildSettingItem(
-            context,
-            theme,
-            Iconsax.like_1,
-            'Your Interests',
-            onTap: () {
-              _showToast('Interests settings coming soon');
-            },
-          ),
-          Divider(color: theme.colorScheme.outline.withOpacity(0.2)),
-          _buildSettingItem(
-            context,
-            theme,
-            Iconsax.colorfilter,
-            'Appearance',
-            subtitle: 'Dark mode & theme settings',
-            onTap: () {
-              _showToast('Appearance settings coming soon');
-            },
-          ),
-          Divider(color: theme.colorScheme.outline.withOpacity(0.2)),
-          _buildSettingItem(
-            context,
-            theme,
-            Iconsax.language_square,
-            'Language',
-            subtitle: 'English (US)',
-            onTap: () {
-              _showToast('Language settings coming soon');
             },
           ),
         ],

@@ -5,6 +5,7 @@ import 'package:infinite_app/services/auth_service.dart';
 import 'package:infinite_app/services/cart_service.dart';
 import 'package:infinite_app/views/checkout_screen.dart';
 import 'package:infinite_app/views/login_screen.dart';
+import 'package:infinite_app/views/search_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -32,14 +33,65 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text(
           'Shopping Cart',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            letterSpacing: 0.5,
+          ),
         ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(Iconsax.search_normal,
+                  color: Colors.black, size: 20),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SearchScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 16),
+        ],
       ),
       body: cartService.items.isEmpty
           ? _buildEmptyCart(context)

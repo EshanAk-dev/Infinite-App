@@ -67,18 +67,44 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.amber.shade50, Colors.white],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "New Arrivals",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
+              Row(
+                children: [
+                  Icon(
+                    Icons.new_releases,
+                    color: Colors.amber.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "New Arrivals",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.amber.shade800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
               GestureDetector(
                 onTap: () {
@@ -90,22 +116,47 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
                     ),
                   );
                 },
-                child: const Text(
-                  "See All",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black38,
-                    fontWeight: FontWeight.w400,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade100.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "See All",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.amber.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 12,
+                        color: Colors.amber.shade700,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
         ),
+        SizedBox(height: 5),
         SizedBox(
           height: 240,
           child: isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.black,
+                    strokeWidth: 2,
+                  ),
+                )
               : errorMessage.isNotEmpty
                   ? Center(
                       child: Text(

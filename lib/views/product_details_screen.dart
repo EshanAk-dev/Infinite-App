@@ -176,7 +176,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (isLoading) {
       return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(
+            color: Colors.black,
+            strokeWidth: 2,
+          ),
         ),
       );
     }
@@ -201,59 +204,92 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 15.0),
-            child: Consumer<CartService>(
-              builder: (context, cart, child) {
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Iconsax.bag_2, size: 28),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CartScreen(),
+          Consumer<CartService>(
+            builder: (context, cart, child) {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
-                        );
-                      },
+                        ],
+                      ),
+                      child: const Icon(Iconsax.bag_2,
+                          color: Colors.black, size: 20),
                     ),
-                    if (cart.itemCount > 0)
-                      Positioned(
-                        right: 6,
-                        top: 6,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          constraints: const BoxConstraints(
-                            minWidth: 16,
-                            minHeight: 16,
-                          ),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              cart.itemCount.toString(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CartScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  if (cart.itemCount > 0)
+                    Positioned(
+                      right: 4,
+                      top: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                        child: Center(
+                          child: Text(
+                            cart.itemCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),
-                  ],
-                );
-              },
-            ),
+                    ),
+                ],
+              );
+            },
           ),
+          const SizedBox(width: 16),
         ],
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Stack(
         children: [
@@ -265,7 +301,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 const SizedBox(height: 32),
                 // Image Gallery with page indicator
                 SizedBox(
-                  height: 450,
+                  height: 495,
                   child: Stack(
                     children: [
                       PageView.builder(
@@ -361,7 +397,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         const SizedBox(height: 10),
 
-                        // Price with animation
+                        // Price
                         Row(
                           children: [
                             if (product!['discountPrice'] != null &&
@@ -409,7 +445,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         const SizedBox(height: 15),
 
                         // Description
-                        // Replace the existing description Text widget with this:
                         LayoutBuilder(
                           builder: (context, constraints) {
                             final textSpan = TextSpan(
@@ -464,7 +499,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Color Selection with modern design
+                        // Color Selection
                         const Text(
                           'COLOR',
                           style: TextStyle(
@@ -525,7 +560,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Size Selection with modern design
+                        // Size Selection
                         const Text(
                           'SIZE',
                           style: TextStyle(
@@ -622,7 +657,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         const SizedBox(height: 32),
 
-                        // Add to Cart Button with animation
+                        // Add to Cart Button
                         SizedBox(
                           width: double.infinity,
                           height: 56,
@@ -692,7 +727,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                 ),
 
-                // Similar Products with modern card design
+                // Similar Products card
                 if (similarProducts.isNotEmpty)
                   Container(
                     color: Colors.white,

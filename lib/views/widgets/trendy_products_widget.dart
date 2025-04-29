@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -63,19 +65,54 @@ class _TrendyProductsWidgetState extends State<TrendyProductsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Text(
-            "Trendy Products",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade50, Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.trending_up,
+                  color: Colors.blue.shade700,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "Trendy Products",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
+        const SizedBox(height: 10),
         if (isLoading)
-          const Center(child: CircularProgressIndicator())
+          const Center(
+            child: CircularProgressIndicator(
+              color: Colors.black,
+              strokeWidth: 2,
+            ),
+          )
         else if (errorMessage.isNotEmpty)
           Center(
             child: Text(

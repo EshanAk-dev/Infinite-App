@@ -60,10 +60,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        title: const Text('Checkout'),
-        centerTitle: true,
-        elevation: 0,
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: const Text(
+          'Checkout',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            letterSpacing: 0.5,
+          ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: cartService.items.isEmpty
           ? _buildEmptyCart(theme)
@@ -649,11 +676,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: Colors.black,
+          strokeWidth: 2,
+        ),
+      ),
     );
 
     try {
-      // 1. Create checkout session
+      // Create checkout session
       final checkoutResponse = await http.post(
         Uri.parse(BASE_URL + CREATE_CHECKOUT_ENDPOINT),
         headers: {
@@ -722,11 +754,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: Colors.black,
+          strokeWidth: 2,
+        ),
+      ),
     );
 
     try {
-      // 1. Create checkout session
+      // Create checkout session
       final checkoutResponse = await http.post(
         Uri.parse(BASE_URL + CREATE_CHECKOUT_ENDPOINT),
         headers: {
@@ -766,7 +803,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final checkoutData = jsonDecode(checkoutResponse.body);
       final checkoutId = checkoutData['_id'];
 
-      // 2. Mark as paid (for COD)
+      // Mark as paid (for COD)
       final paymentResponse = await http.put(
         Uri.parse(BASE_URL +
             PROCESS_PAYMENT_ENDPOINT.replaceFirst(':id', checkoutId)),
@@ -784,7 +821,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         throw Exception('Failed to process COD payment');
       }
 
-      // 3. Finalize checkout
+      // Finalize checkout
       final finalizeResponse = await http.post(
         Uri.parse(BASE_URL +
             FINALIZE_CHECKOUT_ENDPOINT.replaceFirst(':id', checkoutId)),

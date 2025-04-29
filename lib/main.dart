@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:infinite_app/views/checkout_screen.dart';
 import 'package:infinite_app/views/register_screen.dart';
 import 'package:infinite_app/views/splash_screen.dart';
@@ -9,15 +10,21 @@ import 'package:infinite_app/services/cart_service.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => AuthService()),
-        ChangeNotifierProvider(create: (context) => CartService()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  // Lock orientation to portrait mode only
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]).then((_) {
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => AuthService()),
+          ChangeNotifierProvider(create: (context) => CartService()),
+        ],
+        child: const MyApp(),
+      ),
+    );
+  });
 }
 
 class MyApp extends StatelessWidget {

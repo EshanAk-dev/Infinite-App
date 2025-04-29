@@ -41,6 +41,13 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        // Sort products by date (newest first)
+        data.sort((a, b) {
+          final dateA = DateTime.parse(a['createdAt'] ?? '1970-01-01');
+          final dateB = DateTime.parse(b['createdAt'] ?? '1970-01-01');
+          return dateB.compareTo(dateA);
+        });
+
         if (!mounted) return;
         setState(() {
           womenTopWear = data;
@@ -67,18 +74,44 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade50, Colors.white],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Top Wear for Women",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
+              Row(
+                children: [
+                  Icon(
+                    Icons.style,
+                    color: Colors.purple.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Top Wear for Women",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.purple.shade800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
               GestureDetector(
                 onTap: () {
@@ -90,22 +123,47 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
                     ),
                   );
                 },
-                child: const Text(
-                  "See All",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black38,
-                    fontWeight: FontWeight.w400,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade100.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "See All",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.purple.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 12,
+                        color: Colors.purple.shade700,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
         ),
+        SizedBox(height: 5),
         SizedBox(
           height: 240,
           child: isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.black,
+                    strokeWidth: 2,
+                  ),
+                )
               : errorMessage.isNotEmpty
                   ? Center(
                       child: Text(

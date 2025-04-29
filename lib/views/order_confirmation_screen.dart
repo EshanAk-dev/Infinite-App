@@ -75,7 +75,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
             }
           }
 
-          // Get shipping cost (assuming 0 for now, can be updated based on your logic)
+          // Get shipping cost
           _shippingCost = 0.0;
 
           // Calculate total
@@ -108,13 +108,45 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Order Confirmation'),
-        centerTitle: true,
-        elevation: 0,
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: const Text(
+          'Order Confirmation',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            letterSpacing: 0.5,
+          ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Colors.black,
+                strokeWidth: 2,
+              ),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -258,7 +290,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Payment and Shipping info in the same card with side-by-side layout
+                  // Payment and Shipping info
                   Card(
                     elevation: 0,
                     shape: RoundedRectangleBorder(

@@ -84,36 +84,70 @@ class _SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
+        titleSpacing: 8,
         title: Container(
-          height: 48,
+          height: 52,
           decoration: BoxDecoration(
             color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: TextField(
             controller: _searchController,
             focusNode: _searchFocusNode,
             decoration: InputDecoration(
               hintText: 'Search for products...',
-              hintStyle: TextStyle(color: Colors.grey[600]),
-              prefixIcon: Icon(Iconsax.search_normal, color: Colors.grey[600]),
+              hintStyle: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+              ),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 12, right: 8),
+                child: Icon(Iconsax.search_normal,
+                    color: Colors.grey[700], size: 20),
+              ),
               suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: Icon(Icons.close, color: Colors.grey[600]),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() {
-                          products = [];
-                          errorMessage = '';
-                        });
-                      },
+                  ? Container(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        constraints: const BoxConstraints(),
+                        iconSize: 18,
+                        padding: EdgeInsets.zero,
+                        icon: Icon(Icons.close, color: Colors.grey[700]),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            products = [];
+                            errorMessage = '';
+                          });
+                        },
+                      ),
                     )
                   : null,
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              isDense: true,
             ),
-            style: TextStyle(color: Colors.black87),
+            style: const TextStyle(
+              color: Colors.black87,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
             onChanged: (value) => searchProducts(value),
             onSubmitted: (value) => searchProducts(value),
           ),
@@ -124,16 +158,31 @@ class _SearchScreenState extends State<SearchScreen> {
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  IconButton(
-                    icon: const Icon(Iconsax.bag_2, size: 28),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CartScreen(),
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                      );
-                    },
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Iconsax.bag_2,
+                          size: 22, color: Colors.black),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CartScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                   if (cart.itemCount > 0)
                     Positioned(
@@ -142,12 +191,13 @@ class _SearchScreenState extends State<SearchScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
+                          minWidth: 18,
+                          minHeight: 18,
                         ),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
                           shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
                         ),
                         child: Center(
                           child: Text(

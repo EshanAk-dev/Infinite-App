@@ -11,130 +11,147 @@ class HomeBanner extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final theme = Theme.of(context);
 
-    return SizedBox(
-      height: size.height * 0.25,
+    return Container(
+      height: size.height * 0.28,
       width: size.width,
-      child: Stack(
-        children: [
-          // Image with error handling
-          Image.asset(
-            "assets/infinite_hero.jpg",
-            fit: BoxFit.cover,
-            height: size.height * 0.25,
-            width: size.width,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: Colors.grey[300],
-              child: const Center(
-                child: Icon(Icons.error, color: Colors.red),
-              ),
-            ),
-          ),
-
-          // Gradient overlay
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  Colors.black.withOpacity(0.6),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-
-          // Main content
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Headline
-                Text(
-                  "ELEVATED ELEGANCE",
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 5,
-                        offset: const Offset(1, 1),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // Subtitle
-                Text(
-                  "Discover our premium collection with fast island-wide delivery",
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 3,
-                        offset: const Offset(1, 1),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Shop Now button
-                ElevatedButton(
-                  onPressed: () {
-                    // Navigate to the collection screen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const CollectionScreen(category: "All"),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  child: const Text(
-                    "SHOP NOW",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Discount text (kept at bottom left)
-          Positioned(
-            bottom: 20,
-            left: 20,
-            child: Text(
-              "Get 50% off on your first order",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 5,
-                    offset: const Offset(1, 1),
-                  ),
-                ],
-              ),
-            ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
+      ),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // Image
+            Image.asset(
+              "assets/infinite_hero.jpg",
+              fit: BoxFit.cover,
+              height: size.height * 0.28,
+              width: size.width,
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: Colors.grey[200],
+                child: const Center(
+                  child: Icon(Icons.image_not_supported_outlined,
+                      color: Colors.grey),
+                ),
+              ),
+            ),
+
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomLeft,
+                  end: Alignment.topRight,
+                  colors: [
+                    Colors.black.withOpacity(0.7),
+                    Colors.black.withOpacity(0.3),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+
+            // Main content
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Headline
+                  Text(
+                    "ELEVATED ELEGANCE",
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Subtitle
+                  Text(
+                    "Discover our premium collection with fast island-wide delivery",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: Colors.white.withOpacity(0.95),
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Shop now button
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const CollectionScreen(category: "All"),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      "SHOP NOW",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Discount tag
+            Positioned(
+              bottom: 24,
+              right: 24,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.local_offer_outlined,
+                        size: 16, color: theme.colorScheme.primary),
+                    const SizedBox(width: 6),
+                    Text(
+                      "50% OFF FIRST ORDER",
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

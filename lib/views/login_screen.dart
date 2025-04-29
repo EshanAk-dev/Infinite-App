@@ -213,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   context: context,
                                 );
 
-                                // In the login button onPressed handler, update the navigation logic:
+                                // In the login button onPressed handler
                                 if (success) {
                                   if (_redirect == 'checkout') {
                                     Navigator.pushReplacement(

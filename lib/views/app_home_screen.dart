@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/views/cart_screen.dart';
+import 'package:infinite_app/views/search_screen.dart';
 import 'package:infinite_app/views/widgets/banner.dart';
 import 'package:infinite_app/views/collection_screen.dart';
 import 'package:infinite_app/views/widgets/men_topwear_widget.dart';
@@ -69,73 +70,143 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return [
             SliverAppBar(
-              backgroundColor: colorScheme.surface,
+              backgroundColor: Colors.transparent,
               elevation: 0,
+              scrolledUnderElevation: 0,
               pinned: true,
               floating: true,
+              expandedHeight: 70,
               automaticallyImplyLeading: false,
               titleSpacing: 0,
+              flexibleSpace: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
               title: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Image.asset(
-                      "assets/infinite_logo.png",
-                      height: 32,
-                      fit: BoxFit.contain,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Image.asset(
+                        "assets/infinite_logo.png",
+                        height: 32,
+                        fit: BoxFit.contain,
+                      ),
                     ),
-                    Consumer<CartService>(
-                      builder: (context, cart, child) {
-                        return Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Iconsax.bag_2, size: 28),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const CartScreen(),
-                                  ),
-                                );
-                              },
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                            if (cart.itemCount > 0)
-                              Positioned(
-                                right: 6,
-                                top: 6,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
+                            child: const Icon(Iconsax.search_normal,
+                                color: Colors.black, size: 20),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SearchScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        Consumer<CartService>(
+                          builder: (context, cart, child) {
+                            return Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                IconButton(
+                                  icon: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade50,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.05),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(Iconsax.bag_2,
+                                        color: Colors.black, size: 20),
                                   ),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      cart.itemCount.toString(),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const CartScreen(),
                                       ),
-                                      textAlign: TextAlign.center,
+                                    );
+                                  },
+                                ),
+                                if (cart.itemCount > 0)
+                                  Positioned(
+                                    right: 4,
+                                    top: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 18,
+                                        minHeight: 18,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: Colors.white, width: 1.5),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          cart.itemCount.toString(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                          ],
-                        );
-                      },
+                              ],
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ),
+            )
           ];
         },
         body: CustomScrollView(
@@ -147,33 +218,83 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
 
             // Shop By Category Section
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               sliver: SliverToBoxAdapter(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Shop By Category",
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.grey.shade50, Colors.white],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    TextButton(
-                      onPressed: () => navigateToCollection('All'),
-                      child: const Text(
-                        "See All",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black38,
-                          fontWeight: FontWeight.w400,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.style,
+                            color: Colors.black87,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Shop By Category",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: () => navigateToCollection('All'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "See All",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 12,
+                                color: Colors.black87,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-
             // Category List
             SliverToBoxAdapter(
               child: SizedBox(
@@ -255,7 +376,7 @@ class CategoryItem extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? colorScheme.primary : Colors.transparent,
+                  color: isSelected ? Colors.black : Colors.transparent,
                   width: 2,
                 ),
               ),
@@ -272,7 +393,7 @@ class CategoryItem extends StatelessWidget {
             categoryName,
             style: theme.textTheme.labelMedium?.copyWith(
               color: isSelected
-                  ? colorScheme.primary
+                  ? Colors.black
                   : colorScheme.onSurface.withOpacity(0.6),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             ),

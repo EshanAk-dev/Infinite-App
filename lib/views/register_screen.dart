@@ -55,7 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          'Join Infinite',
+                          'Join Infinite! 🎉',
                           style: Theme.of(context)
                               .textTheme
                               .headlineMedium
