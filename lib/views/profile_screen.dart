@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/services/auth_service.dart';
+import 'package:infinite_app/views/login_screen.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
@@ -23,7 +25,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _fetchUserProfile() async {
     final authService = Provider.of<AuthService>(context, listen: false);
-    if (!authService.isAuthenticated) return;
+    if (!authService.isAuthenticated) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Please login to view your profile';
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -31,6 +39,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       await authService.fetchUserProfile();
     } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to fetch profile: $e';
+      });
       _showToast('Failed to fetch profile', isError: true);
     } finally {
       setState(() {
@@ -63,13 +74,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: Text(
           'Profile',
           style: TextStyle(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
+            fontSize: 25,
           ),
         ),
+        titleSpacing: 30,
         actions: [
           if (authService.isAuthenticated)
             IconButton(
@@ -80,11 +94,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
         ],
       ),
-      body: authService.isAuthenticated
-          ? _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _buildProfileContent(context, authService, user)
-          : _buildGuestContent(context),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : authService.isAuthenticated
+              ? _buildProfileContent(context, authService, user)
+              : _buildLoginContent(context),
     );
   }
 
@@ -149,6 +163,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoginContent(BuildContext context) {
+    // final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Iconsax.profile_circle,
+              size: 80,
+              color: Colors.black.withOpacity(0.5),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              _errorMessage,
+              style: TextStyle(
+                color: Colors.black.withOpacity(0.7),
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 4,
+                shadowColor: Colors.black.withOpacity(0.5),
+                minimumSize: const Size(double.infinity, 56),
+              ),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(),
+                  ),
+                );
+              },
+              child: const Text(
+                'Sign In',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/register');
+              },
+              child: Text(
+                "Don't have an account? Create one",
+                style: TextStyle(
+                  color: Colors.blueAccent,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -441,107 +528,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: const Text('Sign Out'),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGuestContent(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.black, theme.colorScheme.secondary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Iconsax.user,
-                size: 60,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 40),
-            Text(
-              'Join Us Today',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Sign in to access your profile, track orders, and personalize your experience',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
-                fontSize: 16,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                elevation: 4,
-                shadowColor: Colors.black.withOpacity(0.5),
-                minimumSize: const Size(double.infinity, 56),
-              ),
-              onPressed: () {
-                Navigator.pushNamed(
-                  context,
-                  '/login',
-                  arguments: {'redirect': 'profile'},
-                );
-              },
-              child: const Text(
-                'Sign In',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              child: Text(
-                "Don't have an account? Create one",
-                style: TextStyle(
-                  color: Colors.blueAccent,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

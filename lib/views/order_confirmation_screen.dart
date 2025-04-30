@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:infinite_app/services/auth_service.dart';
+import 'package:infinite_app/views/order_screen.dart';
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -429,7 +430,11 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            // Navigate to order history
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const OrderScreen()),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),

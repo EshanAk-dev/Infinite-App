@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/views/app_home_screen.dart';
+import 'package:infinite_app/views/order_screen.dart';
 import 'package:infinite_app/views/search_screen.dart';
 import 'package:infinite_app/views/profile_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -21,7 +22,7 @@ class _AppMainScreenState extends State<AppMainScreen> {
   final List<Widget> _pages = [
     const AppHomeScreen(),
     const SearchScreen(),
-    const Scaffold(),
+    const OrderScreen(),
     const ProfileScreen(),
   ];
 
