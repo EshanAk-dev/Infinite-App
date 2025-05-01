@@ -5,6 +5,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/services/auth_service.dart';
 import 'package:infinite_app/services/cart_service.dart';
 import 'package:infinite_app/views/login_screen.dart';
+import 'package:infinite_app/views/widgets/internet_connectivity_widget.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -95,11 +96,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : authService.isAuthenticated
-              ? _buildProfileContent(context, authService, user)
-              : _buildLoginContent(context),
+      body: InternetConnectivityWidget(
+        showFullScreen: true,
+        onRetry: _fetchUserProfile,
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(Colors.black),
+                ),
+              )
+            : authService.isAuthenticated
+                ? _buildProfileContent(context, authService, user)
+                : _buildLoginContent(context),
+      ),
     );
   }
 

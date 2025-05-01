@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:infinite_app/views/widgets/internet_connectivity_widget.dart';
 
 const String BASE_URL = 'https://infinite-clothing.onrender.com';
 
@@ -100,7 +101,7 @@ class _OrderScreenState extends State<OrderScreen>
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Error loading orders: $e';
+        _errorMessage = 'Error loading orders: Please try again!';
       });
     }
   }
@@ -206,84 +207,88 @@ class _OrderScreenState extends State<OrderScreen>
           ),
         ),
         child: SafeArea(
-          child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.black,
-                    strokeWidth: 2,
-                  ),
-                )
-              : _errorMessage.isNotEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Iconsax.warning_2,
-                            size: 48,
-                            color: Colors.black.withOpacity(0.5),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _errorMessage,
-                            style: TextStyle(
-                              color: Colors.black.withOpacity(0.7),
-                              fontSize: 16,
+          child: InternetConnectivityWidget(
+            showFullScreen: true,
+            onRetry: _fetchOrders,
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.black,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : _errorMessage.isNotEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Iconsax.warning_2,
+                              size: 48,
+                              color: Colors.black.withOpacity(0.5),
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton(
-                            onPressed: () {
-                              if (!authService.isAuthenticated) {
-                                // Navigate to login screen
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const LoginScreen(),
-                                  ),
-                                ).then((_) {
-                                  // This will run when returning from login screen
-                                  _checkAuthAndFetchOrders();
-                                });
-                              } else {
-                                _fetchOrders();
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
+                            const SizedBox(height: 16),
+                            Text(
+                              _errorMessage,
+                              style: TextStyle(
+                                color: Colors.black.withOpacity(0.7),
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: () {
+                                if (!authService.isAuthenticated) {
+                                  // Navigate to login screen
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const LoginScreen(),
+                                    ),
+                                  ).then((_) {
+                                    // This will run when returning from login screen
+                                    _checkAuthAndFetchOrders();
+                                  });
+                                } else {
+                                  _fetchOrders();
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: Text(
+                                !authService.isAuthenticated
+                                    ? 'Login'
+                                    : 'Try Again',
                               ),
                             ),
-                            child: Text(
-                              !authService.isAuthenticated
-                                  ? 'Login'
-                                  : 'Try Again',
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _fetchOrders,
+                        color: Colors.black,
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildOrderList(
+                                _orders), // View all orders without filters
+                            _buildOrderList(_filterOrders('COD pending')),
+                            _buildOrderList(_filterOrders('Processing')),
+                            _buildOrderList(_filterOrders('Shipped')),
+                            _buildOrderList(_filterOrders('Delivered')),
+                          ],
+                        ),
                       ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _fetchOrders,
-                      color: Colors.black,
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildOrderList(
-                              _orders), // View all orders without filters
-                          _buildOrderList(_filterOrders('COD pending')),
-                          _buildOrderList(_filterOrders('Processing')),
-                          _buildOrderList(_filterOrders('Shipped')),
-                          _buildOrderList(_filterOrders('Delivered')),
-                        ],
-                      ),
-                    ),
+          ),
         ),
       ),
     );

@@ -6,6 +6,7 @@ import 'package:infinite_app/services/cart_service.dart';
 import 'package:infinite_app/views/checkout_screen.dart';
 import 'package:infinite_app/views/login_screen.dart';
 import 'package:infinite_app/views/search_screen.dart';
+import 'package:infinite_app/views/widgets/internet_connectivity_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -17,12 +18,42 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<CartService>(context, listen: false).fetchCart(context);
+      _fetchCartData();
     });
+  }
+
+  Future<void> _fetchCartData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await Provider.of<CartService>(context, listen: false).fetchCart(context);
+    } catch (e) {
+      _showToast('Failed to fetch cart data', isError: true);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showToast(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.black87,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
   }
 
   @override
@@ -93,9 +124,24 @@ class _CartScreenState extends State<CartScreen> {
           const SizedBox(width: 16),
         ],
       ),
-      body: cartService.items.isEmpty
-          ? _buildEmptyCart(context)
-          : _buildCartWithItems(context, cartService),
+      body: InternetConnectivityWidget(
+        showFullScreen: true,
+        onRetry: _fetchCartData,
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(Colors.black),
+                ),
+              )
+            : cartService.items.isEmpty
+                ? _buildEmptyCart(context)
+                : RefreshIndicator(
+                    onRefresh: _fetchCartData,
+                    color: Colors.black,
+                    child: _buildCartWithItems(context, cartService),
+                  ),
+      ),
     );
   }
 

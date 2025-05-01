@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 const String BASE_URL = 'https://infinite-clothing.onrender.com';
 const String CREATE_CHECKOUT_ENDPOINT = '/api/checkout';
@@ -284,7 +285,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   decoration: _inputDecoration('First Name', theme),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your first name';
+                      return 'First name is required';
                     }
                     return null;
                   },
@@ -297,7 +298,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   decoration: _inputDecoration('Last Name', theme),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your last name';
+                      return 'Last name is required';
                     }
                     return null;
                   },
@@ -313,7 +314,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             decoration: _inputDecoration('Address', theme),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter your address';
+                return 'Address in required';
               }
               return null;
             },
@@ -329,7 +330,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   decoration: _inputDecoration('City', theme),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your city';
+                      return 'City is required';
                     }
                     return null;
                   },
@@ -342,7 +343,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   decoration: _inputDecoration('Postal Code', theme),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your postal code';
+                      return 'Postal code is required';
                     }
                     return null;
                   },
@@ -358,7 +359,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             decoration: _inputDecoration('Country', theme),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter your country';
+                return 'Country is required';
               }
               return null;
             },
@@ -371,7 +372,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             decoration: _inputDecoration('Phone Number', theme),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter your phone number';
+                return 'Phone number is required';
               }
               return null;
             },
@@ -670,6 +671,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _handlePaypalPayment() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No internet connection'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     final cartService = Provider.of<CartService>(context, listen: false);
     final authService = Provider.of<AuthService>(context, listen: false);
 
@@ -748,6 +760,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _handleCODPayment() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No internet connection'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     final cartService = Provider.of<CartService>(context, listen: false);
     final authService = Provider.of<AuthService>(context, listen: false);
 

@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:infinite_app/services/cart_service.dart';
 import 'package:infinite_app/views/cart_screen.dart';
 import 'package:infinite_app/views/widgets/product_card_widget.dart';
+import 'package:infinite_app/views/widgets/internet_connectivity_widget.dart';
 
 class CollectionScreen extends StatefulWidget {
   final String category;
@@ -209,187 +210,192 @@ class _CollectionScreenState extends State<CollectionScreen> {
           const SizedBox(width: 16),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, Colors.grey[100]!],
-            stops: const [0.0, 1.0],
+      body: InternetConnectivityWidget(
+        showFullScreen: true,
+        onRetry: fetchProducts,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.white, Colors.grey[100]!],
+              stops: const [0.0, 1.0],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // Header with filter options
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${products.length} items',
-                              style: TextStyle(
-                                color: Colors.black.withOpacity(0.7),
-                                fontWeight: FontWeight.w500,
+          child: SafeArea(
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // Header with filter options
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Iconsax.filter,
-                              size: 18,
-                              color: Colors.black.withOpacity(0.7),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Filter',
-                              style: TextStyle(
-                                color: Colors.black.withOpacity(0.7),
-                                fontWeight: FontWeight.w500,
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                '${products.length} items',
+                                style: TextStyle(
+                                  color: Colors.black.withOpacity(0.7),
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Iconsax.filter,
+                                size: 18,
+                                color: Colors.black.withOpacity(0.7),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Filter',
+                                style: TextStyle(
+                                  color: Colors.black.withOpacity(0.7),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              // Products grid
-              isLoading
-                  ? SliverFillRemaining(
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.black,
-                          strokeWidth: 2,
-                        ),
-                      ),
-                    )
-                  : errorMessage.isNotEmpty
-                      ? SliverFillRemaining(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Iconsax.warning_2,
-                                  size: 48,
-                                  color: Colors.black.withOpacity(0.5),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  errorMessage,
-                                  style: TextStyle(
-                                    color: Colors.black.withOpacity(0.7),
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                                ElevatedButton(
-                                  onPressed: fetchProducts,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.black,
-                                    foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 24, vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                  ),
-                                  child: const Text('Try Again'),
-                                ),
-                              ],
-                            ),
+                // Products grid
+                isLoading
+                    ? SliverFillRemaining(
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.black,
+                            strokeWidth: 2,
                           ),
-                        )
-                      : products.isEmpty
-                          ? SliverFillRemaining(
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Iconsax.bag_cross,
-                                      size: 48,
-                                      color: Colors.black.withOpacity(0.5),
+                        ),
+                      )
+                    : errorMessage.isNotEmpty
+                        ? SliverFillRemaining(
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Iconsax.warning_2,
+                                    size: 48,
+                                    color: Colors.black.withOpacity(0.5),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    errorMessage,
+                                    style: TextStyle(
+                                      color: Colors.black.withOpacity(0.7),
+                                      fontSize: 16,
                                     ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'No products found',
-                                      style: TextStyle(
-                                        color: Colors.black.withOpacity(0.7),
-                                        fontSize: 16,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  ElevatedButton(
+                                    onPressed: fetchProducts,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.black,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 24, vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          : SliverPadding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              sliver: SliverGrid(
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  mainAxisSpacing: 20,
-                                  crossAxisSpacing: 20,
-                                  childAspectRatio: 0.65,
-                                ),
-                                delegate: SliverChildBuilderDelegate(
-                                  (context, index) {
-                                    final product = products[index];
-                                    return ProductCardWidget(product: product);
-                                  },
-                                  childCount: products.length,
-                                ),
+                                    child: const Text('Try Again'),
+                                  ),
+                                ],
                               ),
                             ),
-              // Bottom padding
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 24),
-              ),
-            ],
+                          )
+                        : products.isEmpty
+                            ? SliverFillRemaining(
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Iconsax.bag_cross,
+                                        size: 48,
+                                        color: Colors.black.withOpacity(0.5),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'No products found',
+                                        style: TextStyle(
+                                          color: Colors.black.withOpacity(0.7),
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : SliverPadding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                sliver: SliverGrid(
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    mainAxisSpacing: 20,
+                                    crossAxisSpacing: 20,
+                                    childAspectRatio: 0.65,
+                                  ),
+                                  delegate: SliverChildBuilderDelegate(
+                                    (context, index) {
+                                      final product = products[index];
+                                      return ProductCardWidget(
+                                          product: product);
+                                    },
+                                    childCount: products.length,
+                                  ),
+                                ),
+                              ),
+                // Bottom padding
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 24),
+                ),
+              ],
+            ),
           ),
         ),
       ),

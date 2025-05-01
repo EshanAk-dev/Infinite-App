@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:http/http.dart' as http;
+import 'package:infinite_app/views/widgets/internet_connectivity_widget.dart';
 import 'package:infinite_app/views/widgets/product_card_widget.dart';
 import 'dart:convert';
 import 'package:provider/provider.dart';
@@ -219,117 +220,118 @@ class _SearchScreenState extends State<SearchScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              Colors.grey[50]!,
-            ],
+      body: InternetConnectivityWidget(
+        showFullScreen: true,
+        onRetry: () => searchProducts(_searchController.text),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.white, Colors.grey[50]!],
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            Expanded(
-              child: isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation(Colors.black),
-                      ),
-                    )
-                  : errorMessage.isNotEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.error_outline,
-                                  size: 48, color: Colors.red[400]),
-                              const SizedBox(height: 16),
-                              Text(
-                                errorMessage,
-                                style: TextStyle(
-                                  color: Colors.grey[800],
-                                  fontSize: 16,
+          child: Column(
+            children: [
+              Expanded(
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation(Colors.black),
+                        ),
+                      )
+                    : errorMessage.isNotEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.error_outline,
+                                    size: 48, color: Colors.red[400]),
+                                const SizedBox(height: 16),
+                                Text(
+                                  errorMessage,
+                                  style: TextStyle(
+                                    color: Colors.grey[800],
+                                    fontSize: 16,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 16),
-                              OutlinedButton(
-                                onPressed: () =>
-                                    searchProducts(_searchController.text),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: Colors.grey[300]!),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: const Text('Try Again'),
-                              ),
-                            ],
-                          ),
-                        )
-                      : products.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Iconsax.search_normal,
-                                      size: 64, color: Colors.grey[300]),
-                                  const SizedBox(height: 24),
-                                  Text(
-                                    _searchController.text.isEmpty
-                                        ? 'Search for your favorite products'
-                                        : 'No products found',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 16,
+                                const SizedBox(height: 16),
+                                OutlinedButton(
+                                  onPressed: () =>
+                                      searchProducts(_searchController.text),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: Colors.grey[300]!),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                   ),
-                                  if (_searchController.text.isNotEmpty)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 8),
-                                      child: Text(
-                                        'Try different keywords',
-                                        style: TextStyle(
-                                          color: Colors.grey[500],
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            )
-                          : CustomScrollView(
-                              slivers: [
-                                SliverPadding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                                  sliver: SliverGrid(
-                                    gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      mainAxisSpacing: 16,
-                                      crossAxisSpacing: 16,
-                                      childAspectRatio: 0.7,
-                                    ),
-                                    delegate: SliverChildBuilderDelegate(
-                                      (context, index) {
-                                        final product = products[index];
-                                        return ProductCardWidget(
-                                          product: product,
-                                        );
-                                      },
-                                      childCount: products.length,
-                                    ),
-                                  ),
+                                  child: const Text('Try Again'),
                                 ),
                               ],
                             ),
-            )
-          ],
+                          )
+                        : products.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Iconsax.search_normal,
+                                        size: 64, color: Colors.grey[300]),
+                                    const SizedBox(height: 24),
+                                    Text(
+                                      _searchController.text.isEmpty
+                                          ? 'Search for your favorite products'
+                                          : 'No products found',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    if (_searchController.text.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(
+                                          'Try different keywords',
+                                          style: TextStyle(
+                                            color: Colors.grey[500],
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              )
+                            : CustomScrollView(
+                                slivers: [
+                                  SliverPadding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        16, 0, 16, 16),
+                                    sliver: SliverGrid(
+                                      gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 2,
+                                        mainAxisSpacing: 16,
+                                        crossAxisSpacing: 16,
+                                        childAspectRatio: 0.7,
+                                      ),
+                                      delegate: SliverChildBuilderDelegate(
+                                        (context, index) {
+                                          final product = products[index];
+                                          return ProductCardWidget(
+                                            product: product,
+                                          );
+                                        },
+                                        childCount: products.length,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+              )
+            ],
+          ),
         ),
       ),
     );
