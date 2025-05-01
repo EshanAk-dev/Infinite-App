@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:infinite_app/views/collection_screen.dart';
 import 'package:infinite_app/views/product_details_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MenTopWearWidget extends StatefulWidget {
   const MenTopWearWidget({super.key});
@@ -233,8 +234,8 @@ class _MenTopWearWidgetState extends State<MenTopWearWidget> {
                   const BorderRadius.vertical(top: Radius.circular(16)),
               child: Stack(
                 children: [
-                  Image.network(
-                    product['images'][0]['url'],
+                  CachedNetworkImage(
+                    imageUrl: product['images'][0]['url'],
                     height: 170,
                     width: double.infinity,
                     fit: BoxFit.cover,

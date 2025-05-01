@@ -41,6 +41,7 @@ dependencies:
   intl: ^0.18.1
   shared_preferences: ^2.2.2
   connectivity_plus: ^5.0.2
+  cached_network_image: ^3.3.1
 
 dev_dependencies:
   flutter_test:

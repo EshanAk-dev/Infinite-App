@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:infinite_app/views/product_details_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProductCardWidget extends StatelessWidget {
   final dynamic product;
@@ -45,8 +46,8 @@ class ProductCardWidget extends StatelessWidget {
                     const BorderRadius.vertical(top: Radius.circular(16)),
                 child: Stack(
                   children: [
-                    Image.network(
-                      product['images'][0]['url'],
+                    CachedNetworkImage(
+                      imageUrl: product['images'][0]['url'],
                       width: double.infinity,
                       fit: BoxFit.cover,
                     ),
