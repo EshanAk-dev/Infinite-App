@@ -10,7 +10,6 @@ import 'package:infinite_app/services/cart_service.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  // Lock orientation to portrait mode only
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

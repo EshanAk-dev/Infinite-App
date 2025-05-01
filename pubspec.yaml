@@ -39,6 +39,7 @@ dependencies:
   iconsax: ^0.0.8
   http: ^1.1.0
   intl: ^0.18.1
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/services/auth_service.dart';
+import 'package:infinite_app/services/cart_service.dart';
 import 'package:infinite_app/views/login_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -505,6 +506,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showSignOutDialog(BuildContext context, AuthService authService) {
+    final cartService = Provider.of<CartService>(context, listen: false);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -522,7 +525,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             onPressed: () {
               Navigator.pop(context);
-              authService.logout();
+              authService.logout(context);
+              cartService.clearCart(); // Clear the cart on logout
               Navigator.pushReplacementNamed(context, '/main');
             },
             child: const Text('Sign Out'),

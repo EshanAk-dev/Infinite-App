@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/services/auth_service.dart';
+import 'package:infinite_app/services/cart_service.dart';
 import 'package:infinite_app/views/checkout_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -252,6 +253,11 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver {
                                   );
 
                                   if (success) {
+                                    final cartService =
+                                        Provider.of<CartService>(context,
+                                            listen: false);
+                                    await cartService.fetchCart(
+                                        context); // Fetch cart when login
                                     if (_redirect == 'checkout') {
                                       Navigator.pushReplacement(
                                         context,

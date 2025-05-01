@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:infinite_app/services/cart_service.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class User {
   final String id;
@@ -39,6 +40,33 @@ class AuthService with ChangeNotifier {
   String? get error => _error;
 
   final String _baseUrl = 'https://infinite-clothing.onrender.com/api';
+  static const String _userKey = 'user_data';
+
+  // Method to initialize from shared preferences
+  Future<void> initialize() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString(_userKey);
+
+    if (userJson != null) {
+      try {
+        final userMap = jsonDecode(userJson);
+        _user = User(
+          id: userMap['id'] ?? '',
+          name: userMap['name'] ?? '',
+          email: userMap['email'] ?? '',
+          role: userMap['role'] ?? 'customer',
+          token: userMap['token'] ?? '',
+        );
+
+        // Verify token is still valid by fetching profile
+        await fetchUserProfile();
+        notifyListeners();
+      } catch (e) {
+        print('Error loading user data: $e');
+        await _clearSavedUser();
+      }
+    }
+  }
 
   Future<bool> register({
     required String name,
@@ -66,6 +94,7 @@ class AuthService with ChangeNotifier {
         final data = jsonDecode(response.body);
         final user = User.fromJson(data['user'], data['token']);
         _user = user;
+        await _saveUserToPrefs(user);
         notifyListeners();
         return true;
       } else {
@@ -82,10 +111,11 @@ class AuthService with ChangeNotifier {
     }
   }
 
-  Future<bool> login(
-      {required String email,
-      required BuildContext context,
-      required String password}) async {
+  Future<bool> login({
+    required String email,
+    required BuildContext context,
+    required String password,
+  }) async {
     _loading = true;
     _error = null;
     notifyListeners();
@@ -106,6 +136,7 @@ class AuthService with ChangeNotifier {
         final data = jsonDecode(response.body);
         final user = User.fromJson(data['user'], data['token']);
         _user = user;
+        await _saveUserToPrefs(user);
         notifyListeners();
 
         // Merge guest cart with user cart if guest cart exists
@@ -137,6 +168,34 @@ class AuthService with ChangeNotifier {
     }
   }
 
+  Future<void> _saveUserToPrefs(User user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        _userKey,
+        jsonEncode({
+          'id': user.id,
+          'name': user.name,
+          'email': user.email,
+          'role': user.role,
+          'token': user.token,
+        }));
+  }
+
+  Future<void> _clearSavedUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_userKey);
+  }
+
+  void logout(BuildContext context) async {
+    _user = null;
+    await _clearSavedUser();
+    notifyListeners();
+
+    // Clear the cart when logging out
+    final cartService = Provider.of<CartService>(context, listen: false);
+    cartService.clearCart();
+  }
+
   Future<void> fetchUserProfile() async {
     if (_user == null) return;
 
@@ -163,11 +222,6 @@ class AuthService with ChangeNotifier {
     } catch (e) {
       print('Error fetching user profile: $e');
     }
-  }
-
-  void logout() {
-    _user = null;
-    notifyListeners();
   }
 
   bool get isAuthenticated => _user != null;
