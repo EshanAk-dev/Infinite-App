@@ -10,6 +10,8 @@ import 'package:iconsax/iconsax.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:infinite_app/services/paypal_helper.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 const String BASE_URL = 'https://infinite-clothing.onrender.com';
 const String CREATE_CHECKOUT_ENDPOINT = '/api/checkout';
@@ -519,7 +521,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Pay with PayPal'),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const FaIcon(
+                          FontAwesomeIcons.paypal,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text('Pay with PayPal'),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -682,6 +694,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
       return;
     }
+
     final cartService = Provider.of<CartService>(context, listen: false);
     final authService = Provider.of<AuthService>(context, listen: false);
 
@@ -734,27 +747,139 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         throw Exception('Failed to create checkout');
       }
 
-      // final checkoutData = jsonDecode(checkoutResponse.body);
-      // final checkoutId = checkoutData['_id'];
+      final checkoutData = jsonDecode(checkoutResponse.body);
+      final checkoutId = checkoutData['_id'];
 
       if (!mounted) return;
+      Navigator.pop(context);
 
-      Navigator.pop(context); // Remove loading dialog
-
-      // Show PayPal payment screen
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => PaypalPaymentScreen(
-      //       checkoutId: checkoutId,
-      //       amount: cartService.totalPrice,
-      //     ),
-      //   ),
-      // );
+      // Process PayPal payment using PayPalHelper
+      await PayPalHelper.processPayment(
+        context: context,
+        checkoutId: checkoutId,
+        amountLKR: cartService.totalPrice,
+        clientId:
+            'AWkFAVokW7TzUWo_ZXG_8d8OkxZCcS-fZyuKrr9aRvxDIM5IJ0fVgPsc54NivDYhajItmcHAJ-9lffAC',
+        secretKey:
+            'EGJWon5maZgv_-IGIZbxQ2Yg0Vf1UxERIiLDtJFqpEMgv9LR1RNVtGKfUhFWrOnBTgFGaJfZXnEvg_yZ',
+        returnURL: "https://infinite-clothing.onrender.com/success",
+        cancelURL: "https://infinite-clothing.onrender.com/cancel",
+        onSuccess: (paymentDetails) async {
+          // Mark payment as successful
+          await _handlePaymentSuccess(checkoutId, paymentDetails);
+        },
+        onError: (error) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Payment error: $error'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+      );
     } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error processing payment: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handlePaymentSuccess(
+      String checkoutId, Map<String, dynamic> paymentDetails) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: Colors.black,
+          strokeWidth: 2,
+        ),
+      ),
+    );
+
+    try {
+      // Update checkout with payment details
+      final response = await http.put(
+        Uri.parse(BASE_URL +
+            PROCESS_PAYMENT_ENDPOINT.replaceFirst(':id', checkoutId)),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${authService.user?.token ?? ''}',
+        },
+        body: jsonEncode({
+          'paymentStatus': 'paid',
+          'paymentDetails': paymentDetails,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update payment status');
+      }
+
+      // Finalize checkout
+      await _finalizeCheckout(checkoutId);
+    } catch (e) {
+      if (!mounted) return;
       Navigator.pop(context); // Remove loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error processing payment: $e')),
+        SnackBar(
+          content: Text('Error recording payment: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _finalizeCheckout(String checkoutId) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final cartService = Provider.of<CartService>(context, listen: false);
+
+    try {
+      final response = await http.post(
+        Uri.parse(BASE_URL +
+            FINALIZE_CHECKOUT_ENDPOINT.replaceFirst(':id', checkoutId)),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${authService.user?.token ?? ''}',
+        },
+      );
+
+      if (response.statusCode != 201) {
+        throw Exception('Failed to finalize checkout');
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      // Navigate to order confirmation screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OrderConfirmationScreen(
+            checkoutId: checkoutId,
+            paymentMethod: 'PayPal',
+            totalAmount: cartService.totalPrice,
+          ),
+        ),
+      );
+
+      cartService.clearCart();
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error finalizing order: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
