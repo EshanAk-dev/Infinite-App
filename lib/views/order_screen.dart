@@ -111,6 +111,11 @@ class _OrderScreenState extends State<OrderScreen>
       return _orders
           .where((order) => order['paymentStatus'] == 'pending COD')
           .toList();
+    } else if (status == 'Active') {
+      return _orders
+          .where((order) =>
+              order['status'] == 'Processing' || order['status'] == 'Shipped')
+          .toList();
     }
     return _orders.where((order) => order['status'] == status).toList();
   }
@@ -121,8 +126,8 @@ class _OrderScreenState extends State<OrderScreen>
   }
 
   int _getOrderCount(String status) {
-    if (status == 'All') {
-      return _orders.length;
+    if (status == 'Active') {
+      return _filterOrders(status).length;
     } else if (status == 'COD pending') {
       return _filterOrders(status).length;
     } else {
@@ -173,7 +178,7 @@ class _OrderScreenState extends State<OrderScreen>
               child: TabBar(
                 controller: _tabController,
                 tabs: [
-                  _buildTabWithBadge('All', _getOrderCount('All')),
+                  _buildTabWithBadge('Active', _getOrderCount('Active')),
                   _buildTabWithBadge(
                       'COD Pending', _getOrderCount('COD pending')),
                   _buildTabWithBadge(
@@ -279,8 +284,7 @@ class _OrderScreenState extends State<OrderScreen>
                         child: TabBarView(
                           controller: _tabController,
                           children: [
-                            _buildOrderList(
-                                _orders), // View all orders without filters
+                            _buildOrderList(_filterOrders('Active')),
                             _buildOrderList(_filterOrders('COD pending')),
                             _buildOrderList(_filterOrders('Processing')),
                             _buildOrderList(_filterOrders('Shipped')),
@@ -371,9 +375,7 @@ class _OrderScreenState extends State<OrderScreen>
     final totalItems =
         order['orderItems'].fold(0, (sum, item) => sum + item['quantity']);
     final orderDate = _formatDate(order['createdAt']);
-    final status = order['paymentStatus'] == 'pending COD'
-        ? 'COD Pending'
-        : order['status'];
+    final status = order['status'];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
