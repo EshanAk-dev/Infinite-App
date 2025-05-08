@@ -189,7 +189,7 @@ class _WomenTopWearWidgetState extends State<WomenTopWearWidget> {
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 15),
                           itemCount:
-                              womenTopWear.length > 6 ? 6 : womenTopWear.length,
+                              womenTopWear.length > 8 ? 8 : womenTopWear.length,
                           itemBuilder: (context, index) {
                             final product = womenTopWear[index];
                             return _buildProductCard(product);

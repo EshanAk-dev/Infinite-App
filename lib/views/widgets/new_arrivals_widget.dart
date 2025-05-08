@@ -182,7 +182,7 @@ class _NewArrivalWidgetState extends State<NewArrivalWidget> {
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 15),
                           itemCount:
-                              newArrivals.length > 6 ? 6 : newArrivals.length,
+                              newArrivals.length > 10 ? 10 : newArrivals.length,
                           itemBuilder: (context, index) {
                             final product = newArrivals[index];
                             return _buildProductCard(product);
