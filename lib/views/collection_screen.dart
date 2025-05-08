@@ -2,14 +2,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:infinite_app/models/products_filters.dart';
 import 'package:infinite_app/views/search_screen.dart';
-import 'package:provider/provider.dart';
-import 'package:infinite_app/services/cart_service.dart';
 import 'package:infinite_app/views/cart_screen.dart';
 import 'package:infinite_app/views/widgets/product_card_widget.dart';
 import 'package:infinite_app/views/widgets/internet_connectivity_widget.dart';
+import 'package:infinite_app/views/widgets/filter_sidebar.dart';
+import 'package:provider/provider.dart';
+import 'package:infinite_app/services/cart_service.dart';
 
 class CollectionScreen extends StatefulWidget {
   final String category;
@@ -25,6 +27,8 @@ class _CollectionScreenState extends State<CollectionScreen> {
   bool isLoading = true;
   String errorMessage = '';
   final ScrollController _scrollController = ScrollController();
+  ProductFilters _filters = ProductFilters();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -45,44 +49,90 @@ class _CollectionScreenState extends State<CollectionScreen> {
     });
 
     try {
-      String queryParam = '';
+      final queryParams = _filters.toQueryParameters();
 
-      if (widget.category == 'All') {
-        // No filter for All
-      } else if (widget.category == 'Men' || widget.category == 'Women') {
-        queryParam = '?gender=${widget.category}';
-      } else {
-        queryParam = '?category=${widget.category}';
+      // Add the main category filter if not "All"
+      if (widget.category != 'All') {
+        if (widget.category == 'Men' || widget.category == 'Women') {
+          queryParams['gender'] = widget.category;
+        } else {
+          queryParams['category'] = widget.category;
+        }
       }
 
-      final response = await http.get(
-        Uri.parse(
-            'https://infinite-clothing.onrender.com/api/products$queryParam'),
+      // // For better debugging
+      // print('Fetching with query parameters: $queryParams');
+
+      // // If color is set, print it for debugging
+      // if (_filters.color.isNotEmpty) {
+      //   print('Color filter: ${_filters.color}');
+      // }
+
+      // // If sizes are set, print them for debugging
+      // if (_filters.sizes.isNotEmpty) {
+      //   print('Size filters: ${_filters.sizes}');
+      // }
+
+      final uri = Uri.https(
+        'infinite-clothing.onrender.com',
+        '/api/products',
+        queryParams,
       );
+
+      // // Print the actual URL being called
+      // print('API URL: ${uri.toString()}');
+
+      final response = await http.get(uri);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print('API Response received: ${data.length} products');
+
+        // Sort products by date (newest first)
+        data.sort((a, b) {
+          final dateA = DateTime.parse(a['createdAt'] ?? '1970-01-01');
+          final dateB = DateTime.parse(b['createdAt'] ?? '1970-01-01');
+          return dateB.compareTo(dateA);
+        });
+
         setState(() {
           products = data;
           isLoading = false;
         });
       } else {
+        print('API Error: ${response.statusCode} - ${response.body}');
         setState(() {
-          errorMessage = 'Failed to load products';
+          errorMessage = 'Failed to load products: ${response.statusCode}';
           isLoading = false;
         });
       }
     } catch (e) {
+      print('Exception: $e');
       setState(() {
-        // errorMessage = 'Error: ${e.toString()}';
+        errorMessage = 'Error loading products. Please try again.';
         isLoading = false;
       });
     }
   }
 
+  void _handleFiltersChanged(ProductFilters newFilters) {
+    setState(() {
+      _filters = newFilters;
+    });
+    fetchProducts();
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _filters = ProductFilters();
+    });
+    fetchProducts();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.grey[50],
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -210,6 +260,11 @@ class _CollectionScreenState extends State<CollectionScreen> {
           const SizedBox(width: 16),
         ],
       ),
+      endDrawer: FilterSidebar(
+        initialFilters: _filters,
+        onFiltersChanged: _handleFiltersChanged,
+        onClearFilters: _clearFilters,
+      ),
       body: InternetConnectivityWidget(
         showFullScreen: true,
         onRetry: fetchProducts,
@@ -258,39 +313,66 @@ class _CollectionScreenState extends State<CollectionScreen> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
+                              if (_filters.hasFilters) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  width: 4,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.3),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Filtered',
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Iconsax.filter,
-                                size: 18,
-                                color: Colors.black.withOpacity(0.7),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Filter',
-                                style: TextStyle(
-                                  color: Colors.black.withOpacity(0.7),
-                                  fontWeight: FontWeight.w500,
+                        InkWell(
+                          onTap: () =>
+                              _scaffoldKey.currentState?.openEndDrawer(),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Iconsax.filter,
+                                  size: 18,
+                                  color: _filters.hasFilters
+                                      ? Theme.of(context).primaryColor
+                                      : Colors.black.withOpacity(0.7),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Filter',
+                                  style: TextStyle(
+                                    color: _filters.hasFilters
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.black.withOpacity(0.7),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -365,6 +447,24 @@ class _CollectionScreenState extends State<CollectionScreen> {
                                           fontSize: 16,
                                         ),
                                       ),
+                                      if (_filters.hasFilters) ...[
+                                        const SizedBox(height: 16),
+                                        ElevatedButton(
+                                          onPressed: _clearFilters,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.black,
+                                            foregroundColor: Colors.white,
+                                            elevation: 0,
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 24, vertical: 12),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(30),
+                                            ),
+                                          ),
+                                          child: const Text('Clear Filters'),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
