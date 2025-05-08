@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:infinite_app/models/products_filters.dart';
+import 'package:iconsax/iconsax.dart';
 
 class FilterSidebar extends StatefulWidget {
   final ProductFilters initialFilters;
@@ -105,7 +106,7 @@ class _FilterSidebarState extends State<FilterSidebar> {
       child: Column(
         children: [
           SizedBox(
-            height: 13,
+            height: 20,
           ),
           // Header
           Container(
@@ -123,11 +124,21 @@ class _FilterSidebarState extends State<FilterSidebar> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Filters',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  children: [
+                    Icon(
+                      Iconsax.filter,
+                      size: 20,
+                      color: Colors.black,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Filters',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
                 if (_filters.hasFilters)
                   TextButton.icon(
@@ -138,8 +149,14 @@ class _FilterSidebarState extends State<FilterSidebar> {
                       widget.onClearFilters();
                     },
                     icon: const Icon(Icons.refresh,
-                        size: 18, color: Colors.black),
-                    label: const Text('Reset'),
+                        size: 20, color: Colors.black),
+                    label: const Text(
+                      'Reset',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(

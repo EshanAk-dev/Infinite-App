@@ -114,7 +114,9 @@ class _OrderScreenState extends State<OrderScreen>
     } else if (status == 'Active') {
       return _orders
           .where((order) =>
-              order['status'] == 'Processing' || order['status'] == 'Shipped')
+              order['status'] == 'Processing' ||
+              order['status'] == 'Shipped' ||
+              order['status'] == 'Out for Delivery')
           .toList();
     }
     return _orders.where((order) => order['status'] == status).toList();
@@ -179,11 +181,13 @@ class _OrderScreenState extends State<OrderScreen>
                 controller: _tabController,
                 tabs: [
                   _buildTabWithBadge('Active', _getOrderCount('Active')),
-                  _buildTabWithBadge(
-                      'COD Pending', _getOrderCount('COD pending')),
+                  // _buildTabWithBadge(
+                  //     'COD Pending', _getOrderCount('COD pending')),
                   _buildTabWithBadge(
                       'Processing', _getOrderCount('Processing')),
                   _buildTabWithBadge('Shipped', _getOrderCount('Shipped')),
+                  _buildTabWithBadge(
+                      'Out for Delivery', _getOrderCount('Out for Delivery')),
                   _buildTabWithBadge('Delivered', _getOrderCount('Delivered')),
                 ],
                 labelColor: Colors.black,
@@ -285,9 +289,10 @@ class _OrderScreenState extends State<OrderScreen>
                           controller: _tabController,
                           children: [
                             _buildOrderList(_filterOrders('Active')),
-                            _buildOrderList(_filterOrders('COD pending')),
+                            // _buildOrderList(_filterOrders('COD pending')),
                             _buildOrderList(_filterOrders('Processing')),
                             _buildOrderList(_filterOrders('Shipped')),
+                            _buildOrderList(_filterOrders('Out for Delivery')),
                             _buildOrderList(_filterOrders('Delivered')),
                           ],
                         ),
@@ -626,12 +631,12 @@ class _OrderScreenState extends State<OrderScreen>
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'COD Pending':
-        return Colors.orange;
       case 'Processing':
         return Colors.blue;
       case 'Shipped':
         return Colors.purple;
+      case 'Out for Delivery':
+        return Colors.teal;
       case 'Delivered':
         return Colors.green;
       default:
