@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'dart:async';
 import 'package:infinite_app/views/app_home_screen.dart';
 import 'package:infinite_app/views/order_screen.dart';
 import 'package:infinite_app/views/notification_screen.dart';
@@ -9,8 +10,6 @@ import 'package:infinite_app/views/profile_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:infinite_app/services/auth_service.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 const String BASE_URL = 'https://infinite-clothing.onrender.com';
 
@@ -25,13 +24,17 @@ class _AppMainScreenState extends State<AppMainScreen> {
   int _selectedIndex = 0;
   DateTime? lastBackPressed;
   int _activeOrdersCount = 0;
-  int _notificationCount = 0; // Add notification count
+  int _notificationCount = 0;
   bool _isLoading = false;
+
+  Timer? _updateTimer;
+  final Duration _updateInterval =
+      const Duration(minutes: 1); // Check every minute
 
   final List<Widget> _pages = [
     const AppHomeScreen(),
     const OrderScreen(),
-    const NotificationScreen(), // Add this screen
+    const NotificationScreen(),
     const ProfileScreen(),
   ];
 
@@ -40,7 +43,22 @@ class _AppMainScreenState extends State<AppMainScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchActiveOrdersCount();
-      _fetchNotificationsCount(); // Add this method call
+      _fetchNotificationsCount();
+      _startUpdateTimer();
+    });
+  }
+
+  @override
+  void dispose() {
+    _updateTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startUpdateTimer() {
+    _updateTimer?.cancel();
+    _updateTimer = Timer.periodic(_updateInterval, (timer) {
+      _fetchActiveOrdersCount();
+      _fetchNotificationsCount();
     });
   }
 
@@ -50,11 +68,13 @@ class _AppMainScreenState extends State<AppMainScreen> {
     final authService = Provider.of<AuthService>(context, listen: true);
     if (authService.isAuthenticated) {
       _fetchActiveOrdersCount();
-      _fetchNotificationsCount(); // Add this method call
+      _fetchNotificationsCount();
+      _startUpdateTimer();
     } else {
+      _updateTimer?.cancel();
       setState(() {
         _activeOrdersCount = 0;
-        _notificationCount = 0; // Reset notification count
+        _notificationCount = 0;
       });
     }
   }
@@ -69,49 +89,27 @@ class _AppMainScreenState extends State<AppMainScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
-      final response = await http.get(
-        Uri.parse('${BASE_URL}/api/orders/my-orders'),
-        headers: {
-          'Authorization': 'Bearer ${authService.user!.token}',
-        },
-      );
+      final orders = await authService.fetchOrders();
 
-      if (response.statusCode == 200) {
-        final orders = jsonDecode(response.body);
-
-        // Count only Processing and Shipped orders (Active orders)
-        int count = 0;
-        for (var order in orders) {
-          if (order['status'] == 'Processing' ||
+      // Count only Processing, Shipped, and Out for Delivery orders (Active orders)
+      int count = orders
+          .where((order) =>
+              order['status'] == 'Processing' ||
               order['status'] == 'Shipped' ||
-              order['status'] == 'Out for Delivery') {
-            count++;
-          }
-        }
+              order['status'] == 'Out_for_Delivery')
+          .length;
 
-        setState(() {
-          _activeOrdersCount = count;
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _activeOrdersCount = count;
+      });
     } catch (e) {
       setState(() {
-        _isLoading = false;
+        _activeOrdersCount = 0;
       });
-      // Handle error
     }
   }
 
-  // Add method to fetch notifications count
   Future<void> _fetchNotificationsCount() async {
     final authService = Provider.of<AuthService>(context, listen: false);
 
@@ -122,32 +120,16 @@ class _AppMainScreenState extends State<AppMainScreen> {
       return;
     }
 
-    // For demonstration purposes, we'll just set a dummy value
-    // In a real app, you would fetch this from an API
-    setState(() {
-      _notificationCount = 3;
-    });
-
-    // Actual implementation would be similar to:
-    /*
     try {
-      final response = await http.get(
-        Uri.parse('${BASE_URL}/api/notifications/unread'),
-        headers: {
-          'Authorization': 'Bearer ${authService.user!.token}',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _notificationCount = data['count'];
-        });
-      }
+      final count = await authService.fetchUnreadNotificationsCount();
+      setState(() {
+        _notificationCount = count;
+      });
     } catch (e) {
-      // Handle error
+      setState(() {
+        _notificationCount = 0;
+      });
     }
-    */
   }
 
   Future<bool> _onWillPop() async {
@@ -254,13 +236,6 @@ class _AppMainScreenState extends State<AppMainScreen> {
                       decoration: BoxDecoration(
                         color: Colors.black,
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 2,
-                            spreadRadius: 1,
-                          ),
-                        ],
                       ),
                       constraints: const BoxConstraints(
                         minWidth: 16,
@@ -270,7 +245,7 @@ class _AppMainScreenState extends State<AppMainScreen> {
                         badgeCount.toString(),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,

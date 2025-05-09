@@ -735,7 +735,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         return Colors.blue;
       case 'Shipped':
         return Colors.purple;
-      case 'Out for Delivery':
+      case 'Out_for_Delivery':
         return Colors.teal;
       case 'Delivered':
         return Colors.green;

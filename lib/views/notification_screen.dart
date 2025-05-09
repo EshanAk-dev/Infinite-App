@@ -1,12 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:infinite_app/services/auth_service.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:shimmer/shimmer.dart';
 import 'package:infinite_app/views/order_details_screen.dart';
+import 'dart:async';
 
 const String BASE_URL = 'https://infinite-clothing.onrender.com';
 
@@ -44,119 +44,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return;
       }
 
-      // For demo purposes, we'll create mock data
-      // In production, you would fetch this from an API
-      await Future.delayed(const Duration(seconds: 1));
-      final List<Map<String, dynamic>> mockNotifications = [
-        {
-          'id': '1',
-          'type': 'order_placed',
-          'title': 'Order Placed Successfully',
-          'message': 'Your order #ORD3892 has been placed successfully.',
-          'orderId': 'ORD3892',
-          'orderStatus': 'Processing',
-          'timestamp': DateTime.now()
-              .subtract(const Duration(minutes: 5))
-              .toIso8601String(),
-          'isRead': false,
-        },
-        {
-          'id': '2',
-          'type': 'order_shipped',
-          'title': 'Order Shipped',
-          'message': 'Your order #ORD3891 has been shipped and is on its way.',
-          'orderId': 'ORD3891',
-          'orderStatus': 'Shipped',
-          'timestamp': DateTime.now()
-              .subtract(const Duration(hours: 2))
-              .toIso8601String(),
-          'isRead': true,
-        },
-        {
-          'id': '3',
-          'type': 'order_delivered',
-          'title': 'Order Delivered',
-          'message':
-              'Your order #ORD3890 has been delivered. Enjoy your new clothing!',
-          'orderId': 'ORD3890',
-          'orderStatus': 'Delivered',
-          'timestamp': DateTime.now()
-              .subtract(const Duration(days: 1))
-              .toIso8601String(),
-          'isRead': true,
-        },
-        {
-          'id': '4',
-          'type': 'order_out_for_delivery',
-          'title': 'Out for Delivery',
-          'message': 'Your order #ORD3889 is out for delivery.',
-          'orderId': 'ORD3889',
-          'orderStatus': 'Out for Delivery',
-          'timestamp': DateTime.now()
-              .subtract(const Duration(days: 1, hours: 5))
-              .toIso8601String(),
-          'isRead': false,
-        },
-        {
-          'id': '5',
-          'type': 'order_cancelled',
-          'title': 'Order Cancelled',
-          'message': 'Your order #ORD3888 has been cancelled as requested.',
-          'orderId': 'ORD3888',
-          'orderStatus': 'Cancelled',
-          'timestamp': DateTime.now()
-              .subtract(const Duration(days: 2))
-              .toIso8601String(),
-          'isRead': true,
-        },
-        {
-          'id': '6',
-          'type': 'promo',
-          'title': 'Limited Time Offer',
-          'message': 'Enjoy 25% off on all summer collection items!',
-          'timestamp': DateTime.now()
-              .subtract(const Duration(days: 3))
-              .toIso8601String(),
-          'isRead': false,
-        },
-        {
-          'id': '7',
-          'type': 'order_processing',
-          'title': 'Order Processing',
-          'message': 'Your order #ORD3887 is being processed.',
-          'orderId': 'ORD3887',
-          'orderStatus': 'Processing',
-          'timestamp': DateTime.now()
-              .subtract(const Duration(days: 3, hours: 12))
-              .toIso8601String(),
-          'isRead': true,
-        },
-      ];
-
+      final notifications = await authService.fetchNotifications();
       setState(() {
-        _notifications = mockNotifications;
+        _notifications = notifications;
         _isLoading = false;
       });
-
-      // Real API call would look like this:
-      /*
-      final response = await http.get(
-        Uri.parse('${BASE_URL}/api/notifications'),
-        headers: {
-          'Authorization': 'Bearer ${authService.user!.token}',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _notifications = List<Map<String, dynamic>>.from(data);
-          _isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to load notifications');
-      }
-      */
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -166,73 +58,32 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _markAsRead(String notificationId) async {
-    // In production you would call the API
-    /*
-    try {
-      final authService = Provider.of<AuthService>(context, listen: false);
-      
-      await http.post(
-        Uri.parse('${BASE_URL}/api/notifications/$notificationId/read'),
-        headers: {
-          'Authorization': 'Bearer ${authService.user!.token}',
-        },
-      );
-      
-      // Update local state
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final success = await authService.markNotificationAsRead(notificationId);
+
+    if (success) {
       setState(() {
         _notifications = _notifications.map((notification) {
-          if (notification['id'] == notificationId) {
+          if (notification['_id'] == notificationId) {
             return {...notification, 'isRead': true};
           }
           return notification;
         }).toList();
       });
-    } catch (e) {
-      // Handle error
     }
-    */
-
-    // For demo, we'll just update the local state
-    setState(() {
-      _notifications = _notifications.map((notification) {
-        if (notification['id'] == notificationId) {
-          return {...notification, 'isRead': true};
-        }
-        return notification;
-      }).toList();
-    });
   }
 
   Future<void> _markAllAsRead() async {
-    // In production you would call the API
-    /*
-    try {
-      final authService = Provider.of<AuthService>(context, listen: false);
-      
-      await http.post(
-        Uri.parse('${BASE_URL}/api/notifications/mark-all-read'),
-        headers: {
-          'Authorization': 'Bearer ${authService.user!.token}',
-        },
-      );
-      
-      // Update local state
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final success = await authService.markAllNotificationsAsRead();
+
+    if (success) {
       setState(() {
         _notifications = _notifications.map((notification) {
           return {...notification, 'isRead': true};
         }).toList();
       });
-    } catch (e) {
-      // Handle error
     }
-    */
-
-    // For demo, we'll just update the local state
-    setState(() {
-      _notifications = _notifications.map((notification) {
-        return {...notification, 'isRead': true};
-      }).toList();
-    });
   }
 
   @override
@@ -243,32 +94,44 @@ class _NotificationScreenState extends State<NotificationScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         backgroundColor: Colors.transparent,
         title: Text(
           'Notifications',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: FontWeight.w600,
             color: theme.colorScheme.onBackground,
           ),
         ),
+        titleSpacing: 30,
         actions: [
           if (_notifications.isNotEmpty)
             TextButton(
               onPressed: _markAllAsRead,
-              child: Text(
-                'Mark all read',
-                style: TextStyle(
-                  color: theme.colorScheme.primary,
-                  fontSize: 14,
-                ),
+              child: Row(
+                children: [
+                  Icon(
+                    Iconsax.tick_circle,
+                    color: theme.colorScheme.primary,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Mark all read',
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: _fetchNotifications,
+        color: Colors.black,
         child: _buildBody(),
       ),
     );
@@ -300,18 +163,57 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Widget _buildNotificationItem(Map<String, dynamic> notification) {
     final theme = Theme.of(context);
-    final isRead = notification['isRead'] ?? false;
 
-    final IconData iconData = _getNotificationIcon(notification['type']);
-    final Color statusColor = _getStatusColor(notification['type']);
-    final DateTime timestamp = DateTime.parse(notification['timestamp']);
-    final String timeAgo = timeago.format(timestamp);
+    // Safely access fields with default values
+    final String title = notification['title'] ?? 'No Title';
+    final String message = notification['message'] ?? 'No Message';
+    final String type = notification['type'] ?? 'unknown';
+    final bool isRead = notification['isRead'] ?? false;
+
+    // Parse timestamp safely - handle both String and DateTime formats
+    DateTime timestamp;
+    try {
+      if (notification['createdAt'] is String) {
+        timestamp = DateTime.parse(notification['createdAt']);
+      } else if (notification['createdAt'] is int) {
+        timestamp =
+            DateTime.fromMillisecondsSinceEpoch(notification['createdAt']);
+      } else {
+        timestamp = DateTime.now(); // Fallback to current time
+      }
+    } catch (e) {
+      timestamp = DateTime.now(); // Fallback to current time if parsing fails
+    }
+
+    // Format the timestamp to a human-readable string
+    String _formatTimeAgo(DateTime date) {
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inDays > 30) {
+        return '${(difference.inDays / 30).floor()} months ago';
+      } else if (difference.inDays > 0) {
+        return '${difference.inDays} days ago';
+      } else if (difference.inHours > 0) {
+        return '${difference.inHours} hours ago';
+      } else if (difference.inMinutes > 0) {
+        return '${difference.inMinutes} minutes ago';
+      } else {
+        return 'Just now';
+      }
+    }
+
+    // Format the time ago string
+    final String timeAgo = _formatTimeAgo(timestamp);
+
+    final IconData iconData = _getNotificationIcon(type);
+    final Color statusColor = _getStatusColor(type);
 
     return InkWell(
       onTap: () {
         // Mark as read
         if (!isRead) {
-          _markAsRead(notification['id']);
+          _markAsRead(notification['_id'] ?? '');
         }
 
         // Handle notification tap - for order notifications, navigate to order details
@@ -368,7 +270,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            notification['title'],
+                            title,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -387,7 +289,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      notification['message'],
+                      message,
                       style: TextStyle(
                         fontSize: 14,
                         color: theme.colorScheme.onSurface.withOpacity(0.8),
@@ -431,11 +333,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         icon = Iconsax.refresh;
         break;
       case 'shipped':
-        color = Colors.orange;
+        color = Colors.purple;
         icon = Iconsax.truck;
         break;
-      case 'out for delivery':
-        color = Colors.purple;
+      case 'out_for_delivery':
+        color = Colors.teal;
         icon = Iconsax.truck_time;
         break;
       case 'delivered':
@@ -507,9 +409,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case 'order_processing':
         return Colors.blue;
       case 'order_shipped':
-        return Colors.orange;
-      case 'order_out_for_delivery':
         return Colors.purple;
+      case 'order_out_for_delivery':
+        return Colors.teal;
       case 'order_delivered':
         return Colors.green;
       case 'order_cancelled':

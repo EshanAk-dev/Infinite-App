@@ -82,7 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
-            fontSize: 25,
+            fontSize: 20,
           ),
         ),
         titleSpacing: 30,

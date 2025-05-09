@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:infinite_app/views/widgets/internet_connectivity_widget.dart';
+import 'dart:async';
 
 const String BASE_URL = 'https://infinite-clothing.onrender.com';
 
@@ -41,22 +42,15 @@ class _OrderScreenState extends State<OrderScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     final authService = Provider.of<AuthService>(context, listen: true);
-    final bool currentAuthStatus = authService.isAuthenticated;
 
     // Only refresh data if auth status changed
-    if (currentAuthStatus != _isAuthenticated) {
-      _isAuthenticated = currentAuthStatus;
+    if (authService.isAuthenticated != _isAuthenticated) {
+      _isAuthenticated = authService.isAuthenticated;
       if (_isAuthenticated) {
         // User just logged in, fetch orders
         _fetchOrders();
       }
     }
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   void _checkAuthAndFetchOrders() {
@@ -116,7 +110,7 @@ class _OrderScreenState extends State<OrderScreen>
           .where((order) =>
               order['status'] == 'Processing' ||
               order['status'] == 'Shipped' ||
-              order['status'] == 'Out for Delivery')
+              order['status'] == 'Out_for_Delivery')
           .toList();
     }
     return _orders.where((order) => order['status'] == status).toList();
@@ -155,7 +149,7 @@ class _OrderScreenState extends State<OrderScreen>
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w700,
-            fontSize: 25,
+            fontSize: 20,
             letterSpacing: 0.5,
           ),
         ),
@@ -181,13 +175,11 @@ class _OrderScreenState extends State<OrderScreen>
                 controller: _tabController,
                 tabs: [
                   _buildTabWithBadge('Active', _getOrderCount('Active')),
-                  // _buildTabWithBadge(
-                  //     'COD Pending', _getOrderCount('COD pending')),
                   _buildTabWithBadge(
                       'Processing', _getOrderCount('Processing')),
                   _buildTabWithBadge('Shipped', _getOrderCount('Shipped')),
                   _buildTabWithBadge(
-                      'Out for Delivery', _getOrderCount('Out for Delivery')),
+                      'Out for Delivery', _getOrderCount('Out_for_Delivery')),
                   _buildTabWithBadge('Delivered', _getOrderCount('Delivered')),
                 ],
                 labelColor: Colors.black,
@@ -289,10 +281,9 @@ class _OrderScreenState extends State<OrderScreen>
                           controller: _tabController,
                           children: [
                             _buildOrderList(_filterOrders('Active')),
-                            // _buildOrderList(_filterOrders('COD pending')),
                             _buildOrderList(_filterOrders('Processing')),
                             _buildOrderList(_filterOrders('Shipped')),
-                            _buildOrderList(_filterOrders('Out for Delivery')),
+                            _buildOrderList(_filterOrders('Out_for_Delivery')),
                             _buildOrderList(_filterOrders('Delivered')),
                           ],
                         ),
@@ -332,47 +323,59 @@ class _OrderScreenState extends State<OrderScreen>
 
   Widget _buildOrderList(List<dynamic> orders) {
     if (orders.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Iconsax.box_1,
-              size: 60,
-              color: Colors.grey[300],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No orders found',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+      return RefreshIndicator(
+        onRefresh: _fetchOrders,
+        color: Colors.black,
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Iconsax.box_1,
+                    size: 60,
+                    color: Colors.grey[300],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No orders found',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Your orders will appear here',
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Your orders will appear here',
-              style: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 14,
-              ),
-            ),
-          ],
+          ),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      physics: const BouncingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
+    return RefreshIndicator(
+      onRefresh: _fetchOrders,
+      color: Colors.black,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: orders.length,
+        itemBuilder: (context, index) {
+          final order = orders[index];
+          return _buildOrderCard(order);
+        },
       ),
-      itemCount: orders.length,
-      itemBuilder: (context, index) {
-        final order = orders[index];
-        return _buildOrderCard(order);
-      },
     );
   }
 
@@ -635,7 +638,7 @@ class _OrderScreenState extends State<OrderScreen>
         return Colors.blue;
       case 'Shipped':
         return Colors.purple;
-      case 'Out for Delivery':
+      case 'Out_for_Delivery':
         return Colors.teal;
       case 'Delivered':
         return Colors.green;

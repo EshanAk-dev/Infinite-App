@@ -225,4 +225,111 @@ class AuthService with ChangeNotifier {
   }
 
   bool get isAuthenticated => _user != null;
+
+  Future<List<Map<String, dynamic>>> fetchOrders() async {
+    if (_user == null) return [];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/orders/my-orders'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${_user!.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching orders: $e');
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchNotifications() async {
+    if (_user == null) return [];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/notifications'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${_user!.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching notifications: $e');
+      return [];
+    }
+  }
+
+  Future<int> fetchUnreadNotificationsCount() async {
+    if (_user == null) return 0;
+
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/notifications/unread'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${_user!.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['count'] ?? 0;
+      }
+      return 0;
+    } catch (e) {
+      print('Error fetching unread notifications count: $e');
+      return 0;
+    }
+  }
+
+  Future<bool> markNotificationAsRead(String notificationId) async {
+    if (_user == null) return false;
+
+    try {
+      final response = await http.put(
+        Uri.parse('$_baseUrl/notifications/$notificationId/read'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${_user!.token}',
+        },
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error marking notification as read: $e');
+      return false;
+    }
+  }
+
+  Future<bool> markAllNotificationsAsRead() async {
+    if (_user == null) return false;
+
+    try {
+      final response = await http.put(
+        Uri.parse('$_baseUrl/notifications/mark-all-read'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${_user!.token}',
+        },
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error marking all notifications as read: $e');
+      return false;
+    }
+  }
 }
