@@ -10,7 +10,7 @@ Infinite is a mobile shopping application that allows users to browse, search, a
 
 * **Flutter** – Frontend framework for building cross-platform apps.
 * **Express.js** – Backend API for handling authentication, product management, and orders.
-* **MongoDB** – (If applicable) Database used for storing products, users, and order data.
+* **MongoDB** – Database used for storing products, users, and order data.
 * **Node.js** – Runtime environment for Express server.
 
 ## 📱 Features
