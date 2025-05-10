@@ -24,7 +24,7 @@ Infinite is a mobile shopping application that allows users to browse, search, a
 
 ## 📦 Future Improvements
 
-* Payment gateway integration (e.g., Stripe, Razorpay)
+* Payment gateway integration
 * Wishlist and favorites
 * Push notifications
 * Review & ratings system
