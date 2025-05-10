@@ -28,4 +28,3 @@ Infinite is a mobile shopping application that allows users to browse, search, a
 * Wishlist and favorites
 * Push notifications
 * Review & ratings system
-* Admin dashboard for inventory management
