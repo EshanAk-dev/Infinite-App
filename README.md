@@ -1,16 +1,31 @@
-# infinite_app
+# Infinite App
 
-A new Flutter project.
+A modern Flutter application for shopping from the clothing brand **Infinite**, featuring a stylish UI, seamless user experience, and powered by an **Express.js backend**.
 
-## Getting Started
+## 🚀 Overview
 
-This project is a starting point for a Flutter application.
+Infinite is a mobile shopping application that allows users to browse, search, and purchase clothing items directly from their smartphones. Built using **Flutter** for the frontend and **Express.js** for the backend API, the app delivers a fast and responsive experience.
 
-A few resources to get you started if this is your first Flutter project:
+## 🛠️ Tech Stack
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+* **Flutter** – Frontend framework for building cross-platform apps.
+* **Express.js** – Backend API for handling authentication, product management, and orders.
+* **MongoDB** – (If applicable) Database used for storing products, users, and order data.
+* **Node.js** – Runtime environment for Express server.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 📱 Features
+
+* User registration and login
+* Browse product catalog
+* Search and filter products
+* Product details view
+* Add to cart and checkout
+* Order history and tracking
+
+## 📦 Future Improvements
+
+* Payment gateway integration (e.g., Stripe, Razorpay)
+* Wishlist and favorites
+* Push notifications
+* Review & ratings system
+* Admin dashboard for inventory management
