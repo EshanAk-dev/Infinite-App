@@ -4,6 +4,7 @@ import 'package:infinite_app/services/cart_service.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class User {
   final String id;
@@ -39,6 +40,14 @@ class AuthService with ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  // New properties for notification tracking
+  int _unreadNotificationCount = 0;
+  int get unreadNotificationCount => _unreadNotificationCount;
+
+  // Stream controller to broadcast notification events
+  bool _hasNewNotification = false;
+  bool get hasNewNotification => _hasNewNotification;
+
   final String _baseUrl = 'https://infinite-clothing.onrender.com/api';
   static const String _userKey = 'user_data';
 
@@ -60,11 +69,115 @@ class AuthService with ChangeNotifier {
 
         // Verify token is still valid by fetching profile
         await fetchUserProfile();
+
+        // Initialize WebSocket connection
+        await _initWebSocket();
+
+        // Fetch unread notification count
+        await fetchUnreadNotificationsCount();
+
         notifyListeners();
       } catch (e) {
         print('Error loading user data: $e');
         await _clearSavedUser();
       }
+    }
+  }
+
+  WebSocketChannel? _socketChannel;
+
+  Future<void> _initWebSocket() async {
+    if (_user == null) return;
+
+    try {
+      // Close existing connection if any
+      await _closeWebSocket();
+
+      // Create new connection
+      final wsUrl = _baseUrl
+              .replaceFirst('https://', 'wss://')
+              .replaceFirst('http://', 'ws://') +
+          '/ws';
+      _socketChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
+
+      // Add auth token after connection
+      _socketChannel!.sink.add(jsonEncode({
+        'type': 'auth',
+        'token': _user!.token,
+      }));
+
+      // Listen for messages
+      _socketChannel!.stream.listen(
+        (message) {
+          final data = jsonDecode(message);
+          if (data['type'] == 'notification') {
+            // Process the notification data
+            _processNotification(data['data']);
+          }
+        },
+        onError: (error) {
+          print('WebSocket error: $error');
+          // Attempt to reconnect after delay
+          Future.delayed(Duration(seconds: 5), _initWebSocket);
+        },
+        onDone: () {
+          print('WebSocket closed');
+          // Attempt to reconnect
+          Future.delayed(Duration(seconds: 5), _initWebSocket);
+        },
+      );
+    } catch (e) {
+      print('WebSocket connection error: $e');
+    }
+  }
+
+  Future<void> _closeWebSocket() async {
+    await _socketChannel?.sink.close();
+    _socketChannel = null;
+  }
+
+  // Call after successful login
+  Future<void> _afterLogin() async {
+    await _initWebSocket();
+    await fetchUnreadNotificationsCount();
+  }
+
+  // Call on logout
+  void _onLogout() {
+    _closeWebSocket();
+    _unreadNotificationCount = 0;
+    _hasNewNotification = false;
+  }
+
+  void _processNotification(Map<String, dynamic> notificationData) {
+    // Handle different notification types
+    switch (notificationData['type']) {
+      case 'order_update':
+        // Order status update notification
+        _hasNewNotification = true;
+        _unreadNotificationCount++;
+        notifyListeners();
+        break;
+      case 'notification_read':
+        // Single notification marked as read
+        if (_unreadNotificationCount > 0) {
+          _unreadNotificationCount--;
+        }
+        notifyListeners();
+        break;
+      case 'all_notifications_read':
+        // All notifications marked as read
+        _unreadNotificationCount = 0;
+        notifyListeners();
+        break;
+      // More notification types
+      case 'new_product':
+      case 'promo':
+      case 'system':
+        _hasNewNotification = true;
+        _unreadNotificationCount++;
+        notifyListeners();
+        break;
     }
   }
 
@@ -138,6 +251,7 @@ class AuthService with ChangeNotifier {
         _user = user;
         await _saveUserToPrefs(user);
         notifyListeners();
+        await _afterLogin();
 
         // Merge guest cart with user cart if guest cart exists
         final cartService = Provider.of<CartService>(context, listen: false);
@@ -189,6 +303,7 @@ class AuthService with ChangeNotifier {
   void logout(BuildContext context) async {
     _user = null;
     await _clearSavedUser();
+    _onLogout();
     notifyListeners();
 
     // Clear the cart when logging out
@@ -286,7 +401,9 @@ class AuthService with ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['count'] ?? 0;
+        _unreadNotificationCount = data['count'] ?? 0;
+        notifyListeners();
+        return _unreadNotificationCount;
       }
       return 0;
     } catch (e) {
@@ -307,7 +424,15 @@ class AuthService with ChangeNotifier {
         },
       );
 
-      return response.statusCode == 200;
+      if (response.statusCode == 200) {
+        // Decrement notification count locally for immediate UI update
+        if (_unreadNotificationCount > 0) {
+          _unreadNotificationCount--;
+          notifyListeners();
+        }
+        return true;
+      }
+      return false;
     } catch (e) {
       print('Error marking notification as read: $e');
       return false;
@@ -326,10 +451,23 @@ class AuthService with ChangeNotifier {
         },
       );
 
-      return response.statusCode == 200;
+      if (response.statusCode == 200) {
+        // Reset notification count locally for immediate UI update
+        _unreadNotificationCount = 0;
+        _hasNewNotification = false;
+        notifyListeners();
+        return true;
+      }
+      return false;
     } catch (e) {
       print('Error marking all notifications as read: $e');
       return false;
     }
+  }
+
+  // Method to reset the new notification flag
+  void resetNewNotificationFlag() {
+    _hasNewNotification = false;
+    notifyListeners();
   }
 }

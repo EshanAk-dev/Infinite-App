@@ -27,10 +27,6 @@ class _AppMainScreenState extends State<AppMainScreen> {
   int _notificationCount = 0;
   bool _isLoading = false;
 
-  Timer? _updateTimer;
-  final Duration _updateInterval =
-      const Duration(minutes: 1); // Check every minute
-
   final List<Widget> _pages = [
     const AppHomeScreen(),
     const OrderScreen(),
@@ -42,23 +38,7 @@ class _AppMainScreenState extends State<AppMainScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchActiveOrdersCount();
-      _fetchNotificationsCount();
-      _startUpdateTimer();
-    });
-  }
-
-  @override
-  void dispose() {
-    _updateTimer?.cancel();
-    super.dispose();
-  }
-
-  void _startUpdateTimer() {
-    _updateTimer?.cancel();
-    _updateTimer = Timer.periodic(_updateInterval, (timer) {
-      _fetchActiveOrdersCount();
-      _fetchNotificationsCount();
+      _fetchCounts();
     });
   }
 
@@ -66,16 +46,48 @@ class _AppMainScreenState extends State<AppMainScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final authService = Provider.of<AuthService>(context, listen: true);
+
+    // Update notification count whenever it changes in AuthService
+    _notificationCount = authService.unreadNotificationCount;
+
+    // Listen for auth changes
     if (authService.isAuthenticated) {
-      _fetchActiveOrdersCount();
-      _fetchNotificationsCount();
-      _startUpdateTimer();
+      _fetchCounts();
     } else {
-      _updateTimer?.cancel();
       setState(() {
         _activeOrdersCount = 0;
         _notificationCount = 0;
       });
+    }
+  }
+
+  Future<void> _fetchCounts() async {
+    if (!mounted) return;
+
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (!authService.isAuthenticated) {
+      setState(() {
+        _activeOrdersCount = 0;
+        _notificationCount = 0;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await Future.wait([
+        _fetchActiveOrdersCount(),
+        _fetchNotificationsCount(),
+      ]);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -100,13 +112,17 @@ class _AppMainScreenState extends State<AppMainScreen> {
               order['status'] == 'Out_for_Delivery')
           .length;
 
-      setState(() {
-        _activeOrdersCount = count;
-      });
+      if (mounted) {
+        setState(() {
+          _activeOrdersCount = count;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _activeOrdersCount = 0;
-      });
+      if (mounted) {
+        setState(() {
+          _activeOrdersCount = 0;
+        });
+      }
     }
   }
 
@@ -122,13 +138,17 @@ class _AppMainScreenState extends State<AppMainScreen> {
 
     try {
       final count = await authService.fetchUnreadNotificationsCount();
-      setState(() {
-        _notificationCount = count;
-      });
+      if (mounted) {
+        setState(() {
+          _notificationCount = count;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _notificationCount = 0;
-      });
+      if (mounted) {
+        setState(() {
+          _notificationCount = 0;
+        });
+      }
     }
   }
 
@@ -154,6 +174,19 @@ class _AppMainScreenState extends State<AppMainScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authService = Provider.of<AuthService>(context);
+
+    // Update notification count from AuthService
+    if (_notificationCount != authService.unreadNotificationCount) {
+      _notificationCount = authService.unreadNotificationCount;
+    }
+
+    if (authService.hasNewNotification && _selectedIndex != 2) {
+      Future.delayed(Duration(seconds: 3), () {
+        if (mounted && authService.hasNewNotification) {
+          authService.resetNewNotificationFlag();
+        }
+      });
+    }
 
     return WillPopScope(
       onWillPop: _onWillPop,
@@ -203,8 +236,19 @@ class _AppMainScreenState extends State<AppMainScreen> {
     final isSelected = _selectedIndex == index;
     final theme = Theme.of(context);
 
+    // Get auth service to check if this tab has new notifications
+    final authService = Provider.of<AuthService>(context);
+    final hasNewItem = index == 2 && authService.hasNewNotification;
+
     return InkWell(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: () {
+        setState(() => _selectedIndex = index);
+
+        // Reset notification flag when user navigates to notifications tab
+        if (index == 2 && authService.hasNewNotification) {
+          authService.resetNewNotificationFlag();
+        }
+      },
       customBorder: const CircleBorder(),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -215,7 +259,9 @@ class _AppMainScreenState extends State<AppMainScreen> {
             decoration: BoxDecoration(
               color: isSelected
                   ? Colors.black.withOpacity(0.09)
-                  : Colors.transparent,
+                  : (hasNewItem
+                      ? Colors.black.withOpacity(0.05)
+                      : Colors.transparent),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Stack(
@@ -223,8 +269,11 @@ class _AppMainScreenState extends State<AppMainScreen> {
               children: [
                 Icon(
                   icon,
-                  color:
-                      isSelected ? Colors.black : Colors.black.withOpacity(0.6),
+                  color: isSelected
+                      ? Colors.black
+                      : (hasNewItem
+                          ? Colors.black
+                          : Colors.black.withOpacity(0.6)),
                   size: 24,
                 ),
                 if (badgeCount > 0)
