@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:infinite_app/services/auth_service.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:infinite_app/views/order_details_screen.dart';
+import 'package:infinite_app/views/widgets/whatsapp_button.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
 
 const String BASE_URL = 'https://infinite-clothing.onrender.com';
@@ -73,6 +75,38 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+  Future<void> _deleteNotification(String notificationId) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final success = await authService.deleteNotification(notificationId);
+
+    if (success) {
+      setState(() {
+        _notifications = _notifications
+            .where((notification) => notification['_id'] != notificationId)
+            .toList();
+      });
+
+      // Show success toast
+      _showToast('Notification deleted');
+    } else {
+      // Show error toast
+      _showToast('Failed to delete notification', isError: true);
+    }
+  }
+
+  void _showToast(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
   Future<void> _markAllAsRead() async {
     final authService = Provider.of<AuthService>(context, listen: false);
     final success = await authService.markAllNotificationsAsRead();
@@ -129,10 +163,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _fetchNotifications,
-        color: Colors.black,
-        child: _buildBody(),
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: _fetchNotifications,
+            color: Colors.black,
+            child: _buildBody(),
+          ),
+          const WhatsAppButton(),
+        ],
       ),
     );
   }
@@ -169,6 +208,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final String message = notification['message'] ?? 'No Message';
     final String type = notification['type'] ?? 'unknown';
     final bool isRead = notification['isRead'] ?? false;
+    final String notificationId = notification['_id'] ?? '';
 
     // Parse timestamp safely - handle both String and DateTime formats
     DateTime timestamp;
@@ -209,114 +249,149 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final IconData iconData = _getNotificationIcon(type);
     final Color statusColor = _getStatusColor(type);
 
-    return InkWell(
-      onTap: () {
-        // Mark as read
-        if (!isRead) {
-          _markAsRead(notification['_id'] ?? '');
-        }
-
-        // Handle notification tap - for order notifications, navigate to order details
-        if (notification['orderId'] != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  OrderDetailsScreen(orderId: notification['orderId']),
-            ),
-          );
-        }
-      },
-      child: Container(
+    return Dismissible(
+      key: Key(notificationId),
+      direction: DismissDirection.endToStart,
+      background: Container(
         margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: isRead
-              ? theme.cardColor
-              : theme.colorScheme.primary.withOpacity(0.05),
+          color: Colors.red.shade50,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 8,
-              spreadRadius: 0,
-              offset: const Offset(0, 1),
-            ),
-          ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  iconData,
-                  color: statusColor,
-                  size: 24,
-                ),
+        alignment: Alignment.centerRight,
+        child: Icon(
+          Iconsax.trash,
+          color: Colors.red.shade400,
+          size: 26,
+        ),
+      ),
+      confirmDismiss: (direction) async {
+        return true; // Could add confirmation dialog here if needed
+      },
+      onDismissed: (direction) {
+        _deleteNotification(notificationId);
+      },
+      child: GestureDetector(
+        onTap: () {
+          // Mark as read
+          if (!isRead) {
+            _markAsRead(notificationId);
+          }
+
+          // Handle notification tap - for order notifications, navigate to order details
+          if (notification['orderId'] != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    OrderDetailsScreen(orderId: notification['orderId']),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
+            );
+          }
+        },
+        onLongPress: () {
+          Fluttertoast.showToast(
+            msg: "Slide notification to delete",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: isRead
+                ? theme.cardColor
+                : theme.colorScheme.primary.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 8,
+                spreadRadius: 0,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    iconData,
+                    color: statusColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            timeAgo,
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurface,
+                              fontSize: 12,
+                              color:
+                                  theme.colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        message,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: theme.colorScheme.onSurface.withOpacity(0.8),
+                        ),
+                      ),
+                      if (notification['orderStatus'] != null) ...[
+                        const SizedBox(height: 12),
+                        _buildOrderStatusChip(notification['orderStatus']),
+                      ],
+                      if (!isRead) ...[
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              shape: BoxShape.circle,
                             ),
                           ),
                         ),
-                        Text(
-                          timeAgo,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
-                          ),
-                        ),
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      message,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: theme.colorScheme.onSurface.withOpacity(0.8),
-                      ),
-                    ),
-                    if (notification['orderStatus'] != null) ...[
-                      const SizedBox(height: 12),
-                      _buildOrderStatusChip(notification['orderStatus']),
                     ],
-                    if (!isRead) ...[
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

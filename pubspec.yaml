@@ -47,6 +47,7 @@ dependencies:
   timeago: ^3.3.0
   shimmer: ^2.0.0
   web_socket_channel: ^2.3.0
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:

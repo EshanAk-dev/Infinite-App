@@ -6,6 +6,7 @@ import 'package:infinite_app/services/auth_service.dart';
 import 'package:infinite_app/services/cart_service.dart';
 import 'package:infinite_app/views/login_screen.dart';
 import 'package:infinite_app/views/widgets/internet_connectivity_widget.dart';
+import 'package:infinite_app/views/widgets/whatsapp_button.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -71,45 +72,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = authService.user;
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Text(
-          'Profile',
-          style: TextStyle(
-            color: theme.colorScheme.onSurface,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: theme.colorScheme.surface,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Text(
+              'Profile',
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+            titleSpacing: 30,
+            actions: [
+              if (authService.isAuthenticated)
+                IconButton(
+                  icon: const Icon(Iconsax.setting_4),
+                  onPressed: () {
+                    _showToast('Settings coming soon');
+                  },
+                ),
+            ],
+          ),
+          body: InternetConnectivityWidget(
+            showFullScreen: true,
+            onRetry: _fetchUserProfile,
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(Colors.black),
+                    ),
+                  )
+                : authService.isAuthenticated
+                    ? _buildProfileContent(context, authService, user)
+                    : _buildLoginContent(context),
           ),
         ),
-        titleSpacing: 30,
-        actions: [
-          if (authService.isAuthenticated)
-            IconButton(
-              icon: const Icon(Iconsax.setting_4),
-              onPressed: () {
-                _showToast('Settings coming soon');
-              },
-            ),
-        ],
-      ),
-      body: InternetConnectivityWidget(
-        showFullScreen: true,
-        onRetry: _fetchUserProfile,
-        child: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(Colors.black),
-                ),
-              )
-            : authService.isAuthenticated
-                ? _buildProfileContent(context, authService, user)
-                : _buildLoginContent(context),
-      ),
+        const WhatsAppButton(),
+      ],
     );
   }
 

@@ -6,6 +6,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:infinite_app/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 
 const String BASE_URL = 'https://infinite-clothing.onrender.com';
@@ -61,6 +62,41 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   String _formatDate(String dateString) {
     final date = DateTime.parse(dateString);
     return DateFormat('MMM dd, yyyy - hh:mm a').format(date);
+  }
+
+  void _contactSupport() async {
+    // Create order-specific message
+    final orderNumber =
+        'Order #${_orderDetails!['_id'].substring(_orderDetails!['_id'].length - 8)}';
+    final message =
+        Uri.encodeComponent('$orderNumber\nHi, I need help with my order.');
+    final phone = '94710701158';
+    final url = 'https://wa.me/$phone?text=$message';
+
+    try {
+      if (!await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      )) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open WhatsApp'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -203,7 +239,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              'Order #${_orderDetails!['_id'].substring(0, 8)}',
+                                              'Order #${_orderDetails!['_id'].substring(_orderDetails!['_id'].length - 8)}',
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.w700,
                                                 fontSize: 16,
@@ -607,31 +643,34 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           const SizedBox(height: 40),
 
                           // Support button
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Iconsax.message,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 10),
-                                Text(
-                                  'Contact Support',
-                                  style: TextStyle(
+                          GestureDetector(
+                            onTap: _contactSupport,
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Iconsax.message,
                                     color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
+                                    size: 20,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Contact Support',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],

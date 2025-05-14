@@ -44,6 +44,9 @@ class AuthService with ChangeNotifier {
   int _unreadNotificationCount = 0;
   int get unreadNotificationCount => _unreadNotificationCount;
 
+  // List to store notifications locally
+  List<Map<String, dynamic>> _notifications = [];
+
   // Stream controller to broadcast notification events
   bool _hasNewNotification = false;
   bool get hasNewNotification => _hasNewNotification;
@@ -147,6 +150,7 @@ class AuthService with ChangeNotifier {
     _closeWebSocket();
     _unreadNotificationCount = 0;
     _hasNewNotification = false;
+    _notifications = [];
   }
 
   void _processNotification(Map<String, dynamic> notificationData) {
@@ -168,6 +172,12 @@ class AuthService with ChangeNotifier {
       case 'all_notifications_read':
         // All notifications marked as read
         _unreadNotificationCount = 0;
+        notifyListeners();
+        break;
+      case 'notification_deleted':
+        // Remove from local list if present
+        _notifications
+            .removeWhere((n) => n['_id'] == notificationData['notificationId']);
         notifyListeners();
         break;
       // More notification types
@@ -378,7 +388,8 @@ class AuthService with ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return List<Map<String, dynamic>>.from(data);
+        _notifications = List<Map<String, dynamic>>.from(data);
+        return _notifications;
       }
       return [];
     } catch (e) {
@@ -461,6 +472,43 @@ class AuthService with ChangeNotifier {
       return false;
     } catch (e) {
       print('Error marking all notifications as read: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteNotification(String notificationId) async {
+    if (_user == null) return false;
+
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/notifications/$notificationId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${_user!.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Check if the notification was unread before deleting
+        final wasUnread = _notifications.any((notification) =>
+            notification['_id'] == notificationId &&
+            !(notification['isRead'] ?? false));
+
+        // Update unread count if needed
+        if (wasUnread && _unreadNotificationCount > 0) {
+          _unreadNotificationCount--;
+        }
+
+        // Remove from local list
+        _notifications.removeWhere(
+            (notification) => notification['_id'] == notificationId);
+
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Error deleting notification: $e');
       return false;
     }
   }

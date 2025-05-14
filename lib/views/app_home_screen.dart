@@ -8,6 +8,7 @@ import 'package:infinite_app/views/widgets/banner.dart';
 import 'package:infinite_app/views/collection_screen.dart';
 import 'package:infinite_app/views/widgets/men_topwear_widget.dart';
 import 'package:infinite_app/views/widgets/new_arrivals_widget.dart';
+import 'package:infinite_app/views/widgets/whatsapp_button.dart';
 import 'package:infinite_app/views/widgets/women_topwear_widget.dart';
 import 'package:infinite_app/services/cart_service.dart';
 import 'package:provider/provider.dart';
@@ -67,7 +68,7 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
       scrolledUnderElevation: 0,
       pinned: true,
       floating: true,
-      expandedHeight: 70,
+      expandedHeight: 60,
       automaticallyImplyLeading: false,
       titleSpacing: 0,
       flexibleSpace: Container(
@@ -75,7 +76,7 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
           color: colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withOpacity(0.15),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -94,7 +95,7 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
               ),
               child: Image.asset(
                 "assets/infinite_logo.png",
-                height: 32,
+                height: 42,
                 fit: BoxFit.contain,
               ),
             ),
@@ -206,148 +207,151 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return [
-            _buildAppBar(colorScheme),
-          ];
-        },
-        body: InternetConnectivityWidget(
-          showFullScreen: true,
-          child: CustomScrollView(
-            slivers: [
-              // Home Banner
-              const SliverToBoxAdapter(
-                child: HomeBanner(),
-              ),
+      body: Stack(children: [
+        NestedScrollView(
+          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+            return [
+              _buildAppBar(colorScheme),
+            ];
+          },
+          body: InternetConnectivityWidget(
+            showFullScreen: true,
+            child: CustomScrollView(
+              slivers: [
+                // Home Banner
+                const SliverToBoxAdapter(
+                  child: HomeBanner(),
+                ),
 
-              // Shop By Category Section
-              SliverPadding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                sliver: SliverToBoxAdapter(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.grey.shade50, Colors.white],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                // Shop By Category Section
+                SliverPadding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  sliver: SliverToBoxAdapter(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.grey.shade50, Colors.white],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.style,
-                              color: Colors.black87,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              "Shop By Category",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                                letterSpacing: 0.5,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.style,
+                                color: Colors.black87,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Shop By Category",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                          GestureDetector(
+                            onTap: () => navigateToCollection('All'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "See All",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 12,
+                                    color: Colors.black87,
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                        GestureDetector(
-                          onTap: () => navigateToCollection('All'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  "See All",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 12,
-                                  color: Colors.black87,
-                                ),
-                              ],
-                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              // Category List
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 90,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: categoryData.length,
-                    itemBuilder: (context, index) {
-                      final category = categoryData[index];
-                      return CategoryItem(
-                        categoryName: category['name']!,
-                        categoryImage: category['image']!,
-                        isSelected: selectedCategoryIndex == index,
-                        onTap: () {
-                          setState(() {
-                            selectedCategoryIndex = index;
-                          });
-                          navigateToCollection(category['name']!);
-                        },
-                      );
-                    },
+                // Category List
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 90,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: categoryData.length,
+                      itemBuilder: (context, index) {
+                        final category = categoryData[index];
+                        return CategoryItem(
+                          categoryName: category['name']!,
+                          categoryImage: category['image']!,
+                          isSelected: selectedCategoryIndex == index,
+                          onTap: () {
+                            setState(() {
+                              selectedCategoryIndex = index;
+                            });
+                            navigateToCollection(category['name']!);
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-              // New Arrivals
-              const SliverToBoxAdapter(child: NewArrivalWidget()),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                // New Arrivals
+                const SliverToBoxAdapter(child: NewArrivalWidget()),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-              // Women's Top Wear
-              const SliverToBoxAdapter(child: WomenTopWearWidget()),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                // Women's Top Wear
+                const SliverToBoxAdapter(child: WomenTopWearWidget()),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-              // Men's Top Wear
-              const SliverToBoxAdapter(child: MenTopWearWidget()),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                // Men's Top Wear
+                const SliverToBoxAdapter(child: MenTopWearWidget()),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-              // Trendy Products
-              const SliverToBoxAdapter(child: TrendyProductsWidget()),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            ],
+                // Trendy Products
+                const SliverToBoxAdapter(child: TrendyProductsWidget()),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              ],
+            ),
           ),
         ),
-      ),
+        const WhatsAppButton(),
+      ]),
     );
   }
 }

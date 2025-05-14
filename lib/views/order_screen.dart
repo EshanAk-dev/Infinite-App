@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:infinite_app/views/widgets/internet_connectivity_widget.dart';
+import 'package:infinite_app/views/widgets/whatsapp_button.dart';
 import 'dart:async';
 
 const String BASE_URL = 'https://infinite-clothing.onrender.com';
@@ -198,98 +199,105 @@ class _OrderScreenState extends State<OrderScreen>
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, Colors.grey[100]!],
-            stops: const [0.0, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: InternetConnectivityWidget(
-            showFullScreen: true,
-            onRetry: _fetchOrders,
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.black,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : _errorMessage.isNotEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Iconsax.warning_2,
-                              size: 48,
-                              color: Colors.black.withOpacity(0.5),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              _errorMessage,
-                              style: TextStyle(
-                                color: Colors.black.withOpacity(0.7),
-                                fontSize: 16,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 24),
-                            ElevatedButton(
-                              onPressed: () {
-                                if (!authService.isAuthenticated) {
-                                  // Navigate to login screen
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const LoginScreen(),
-                                    ),
-                                  ).then((_) {
-                                    // This will run when returning from login screen
-                                    _checkAuthAndFetchOrders();
-                                  });
-                                } else {
-                                  _fetchOrders();
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: Text(
-                                !authService.isAuthenticated
-                                    ? 'Login'
-                                    : 'Try Again',
-                              ),
-                            ),
-                          ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.white, Colors.grey[100]!],
+                stops: const [0.0, 1.0],
+              ),
+            ),
+            child: SafeArea(
+              child: InternetConnectivityWidget(
+                showFullScreen: true,
+                onRetry: _fetchOrders,
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.black,
+                          strokeWidth: 2,
                         ),
                       )
-                    : RefreshIndicator(
-                        onRefresh: _fetchOrders,
-                        color: Colors.black,
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            _buildOrderList(_filterOrders('Active')),
-                            _buildOrderList(_filterOrders('Processing')),
-                            _buildOrderList(_filterOrders('Shipped')),
-                            _buildOrderList(_filterOrders('Out_for_Delivery')),
-                            _buildOrderList(_filterOrders('Delivered')),
-                          ],
-                        ),
-                      ),
+                    : _errorMessage.isNotEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Iconsax.warning_2,
+                                  size: 48,
+                                  color: Colors.black.withOpacity(0.5),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _errorMessage,
+                                  style: TextStyle(
+                                    color: Colors.black.withOpacity(0.7),
+                                    fontSize: 16,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 24),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    if (!authService.isAuthenticated) {
+                                      // Navigate to login screen
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const LoginScreen(),
+                                        ),
+                                      ).then((_) {
+                                        // This will run when returning from login screen
+                                        _checkAuthAndFetchOrders();
+                                      });
+                                    } else {
+                                      _fetchOrders();
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.black,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 24, vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    !authService.isAuthenticated
+                                        ? 'Login'
+                                        : 'Try Again',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _fetchOrders,
+                            color: Colors.black,
+                            child: TabBarView(
+                              controller: _tabController,
+                              children: [
+                                _buildOrderList(_filterOrders('Active')),
+                                _buildOrderList(_filterOrders('Processing')),
+                                _buildOrderList(_filterOrders('Shipped')),
+                                _buildOrderList(
+                                    _filterOrders('Out_for_Delivery')),
+                                _buildOrderList(_filterOrders('Delivered')),
+                              ],
+                            ),
+                          ),
+              ),
+            ),
           ),
-        ),
+          const WhatsAppButton(),
+        ],
       ),
     );
   }
@@ -437,7 +445,7 @@ class _OrderScreenState extends State<OrderScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Order #${order['_id'].substring(0, 8)}',
+                                'Order #${order['_id'].substring(order['_id'].length - 8)}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
