@@ -7,6 +7,7 @@ import 'package:infinite_app/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:convert';
 
 const String BASE_URL = 'https://infinite-clothing.onrender.com';
@@ -656,7 +657,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    Iconsax.message,
+                                    FontAwesomeIcons.whatsapp,
                                     color: Colors.white,
                                     size: 20,
                                   ),
